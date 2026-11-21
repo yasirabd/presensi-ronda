@@ -10,10 +10,19 @@ export function Introduction() {
         <Link href="/masuk">Sudah punya akun? Masuk</Link>
       </div>
     </div>
-    <figure><img src="/pos-ronda-kompleks.webp" width="1400" height="700" alt="Tiga bapak lintas generasi berjaga di pos ronda di tepi gang perumahan."/></figure>
+    <figure><img src="/ronda-bersama.webp" width="1200" height="900" alt="Tiga bapak lintas generasi berjaga di pos ronda di tepi gang perumahan."/></figure>
     <div className="intro-roles">
-      <div><h2>Untuk warga</h2><p>Gabung lewat undangan pengurus. Setelah wajah terdaftar, Anda bisa absen saat giliran jaga dimulai.</p></div>
-      <div><h2>Untuk pengurus RT</h2><p>Daftarkan RT, undang warga, lalu susun giliran. Rekap kehadiran bisa diunduh setiap bulan.</p></div>
+      <details><summary>Cara absen sebagai warga</summary><ol>
+        <li>Buka undangan pengurus dan masuk dengan email yang diundang. Pilih <strong>Gabung RT</strong>.</li>
+        <li>Setelah pengurus memeriksa identitas Anda, buka <strong>Pendaftaran wajah saya</strong> untuk mendaftar lewat kamera depan.</li>
+        <li>Saat giliran dimulai, datang ke pos dan pilih <strong>Absen sekarang</strong>. Izinkan lokasi, buka kamera, lalu pilih <strong>Verifikasi kehadiran</strong>. Tunggu keterangan <strong>Hadir</strong>.</li>
+      </ol></details>
+      <details><summary>Cara menyiapkan RT</summary><ol>
+        <li>Masuk dan pilih <strong>Daftarkan RT baru</strong>. Aktifkan akses pengurus dengan kode aplikasi autentikator, lalu pilih <strong>Buat ruang RT</strong>.</li>
+        <li>Buka <strong>Undang warga</strong>, masukkan email warga, buat undangan, lalu bagikan tautannya. Setelah warga bergabung, buka <strong>Verifikasi identitas warga</strong>.</li>
+        <li>Simpan koordinat dan radius di <strong>Atur lokasi pos</strong>. Di <strong>Jadwalkan giliran</strong>, pilih warga dan masukkan nama pos yang sama.</li>
+        <li>Buka <strong>Rekap presensi</strong> untuk memeriksa kehadiran dan mengunduh CSV.</li>
+      </ol></details>
     </div>
   </div>;
 }

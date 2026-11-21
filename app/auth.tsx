@@ -95,7 +95,7 @@ export function AuthForm({db, invited, recovering, onReset}:{
   if(pathname==='/' && !invited && !recovering && !authLink)return <Introduction/>;
   return <div className="auth-layout"><aside className="auth-art" aria-label="Ilustrasi ronda malam">
     <div className="art-heading">Presensi<br/>ronda RT<span aria-hidden="true">.</span></div>
-    <img src="/pos-ronda-kompleks.webp" width="1400" height="700" alt="Tiga bapak berkumpul di pos ronda kompleks perumahan."/>
+    <img src="/ronda-bersama.webp" width="1200" height="900" alt="Tiga bapak berkumpul di pos ronda kompleks perumahan."/>
   </aside><section className="auth-card"><h1>{sent?'Periksa email Anda':titles[mode]}</h1>
     {invited && !sent && mode!=='reset' && <p>Gunakan email yang menerima undangan RT.</p>}
     {mode==='forgot' && !sent && <p>Kami akan mengirim tautan untuk membuat kata sandi baru.</p>}

@@ -96,7 +96,9 @@ main:has(.intro) { max-width: 75rem; }
 .intro figure { margin: 1.5rem 0; align-self: center; }
 .intro img { display: block; width: 100%; height: auto; }
 .intro-roles { display: grid; gap: 1.25rem; padding: 1.5rem; background: #eff3e7; border-radius: 1.5rem; }
-.intro-roles p { margin: 0; max-width: 45ch; }
+.intro-roles details { margin: 0; padding: 0; background: transparent; border: 0; }
+.intro-roles ol { margin: .4rem 0; padding-inline-start: 1.5rem; }
+.intro-roles li + li { margin-top: .65rem; }
 @media (min-width: 760px) {
   .intro { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
   .intro figure { margin: 0; }
