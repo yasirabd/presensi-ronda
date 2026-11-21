@@ -123,7 +123,7 @@ export default function Home() {
       const {data:id,error}=await db.rpc('join_rt',{code:data.get('code')});if(error)throw error;
       setMembers([]);setShifts([]);setLink('');setRT(id);setInvitation('');setPath('');const current=new URL(location.href);current.searchParams.delete('undangan');window.history.replaceState(null,'',current);return 'Berhasil bergabung.';
     })}><label>Kode undangan<input name="code" value={invitation} onChange={e=>setInvitation(e.target.value.trim())} required/></label>{inviteName && <p>Undangan dari {inviteName}</p>}<button disabled={busy||!inviteName}>Gabung RT</button></form></details>}
-    {roomsLoaded && !verified && (!onboarding || intent==='create') && <details open={onboarding}><summary>Aktifkan akses pengurus (2FA)</summary><p>Untuk mengelola RT, hubungkan aplikasi autentikator di HP Anda, lalu masukkan kode yang ditampilkan.</p>
+    {roomsLoaded && manager && !verified && <details open><summary>Aktifkan akses pengurus (2FA)</summary><p>Untuk mengelola RT, hubungkan aplikasi autentikator di HP Anda, lalu masukkan kode yang ditampilkan.</p>
     <form onSubmit={submit(async()=>{
       const {data,error}=await db.auth.mfa.listFactors();if(error)throw error;
       if(data.totp.length){setFactor(data.totp[0].id);return 'Masukkan kode dari aplikasi autentikator.'}
@@ -134,9 +134,9 @@ export default function Home() {
       const {error}=await db.auth.mfa.challengeAndVerify({factorId:factor,code:String(data.get('otp'))});if(error)throw error;
       setSecret('');setVerified(true);return '2FA aktif.';
     })}>{secret && <output>{secret}</output>}{field('Kode autentikator','otp')}{button('Verifikasi')}</form>}</details>}
-    {roomsLoaded && verified && (!onboarding || intent==='create') && <details open={onboarding}><summary>Daftarkan RT</summary><form onSubmit={submit(async data=>{
+    {roomsLoaded && (!onboarding || intent==='create') && <details open={onboarding}><summary>Daftarkan RT</summary><form onSubmit={submit(async data=>{
       const {data:id,error}=await db.rpc('create_rt',{label:data.get('label')});if(error)throw error;
-      setMembers([]);setShifts([]);setLink('');setRT(id);return 'Ruang kerja dibuat.';
+      setMembers([]);setShifts([]);setLink('');setRT(id);setPath('');return 'RT berhasil dibuat. Aktifkan 2FA untuk mengelola RT.';
     })}>{field('Nama RT dan wilayah','label')}{button('Buat ruang RT')}</form></details>}
     {manager && verified && <><details><summary>Verifikasi identitas warga</summary><form onSubmit={submit(async data=>{
       const {error}=await db.rpc('allow_face_registration',{target:rt,member:data.get('member')});
