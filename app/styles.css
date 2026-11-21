@@ -4,6 +4,11 @@
   --gold: #e5cd82;
   --cream: #fff2b4;
   --paper: #faf9f1;
+  --gutter: clamp(1rem, 4vw, 3rem);
+  --content-width: 48rem;
+}
+body:has(.intro), body:has(.auth-layout) {
+  --content-width: 75rem;
 }
 * { box-sizing: border-box; }
 body {
@@ -16,12 +21,13 @@ header {
   background: var(--paper);
   color: var(--forest);
   border-bottom: 1px solid #d9dece;
-  padding: .8rem max(1rem, calc((100vw - 46rem) / 2));
+  padding-block: .8rem;
+  padding-inline: max(var(--gutter), calc((100% - var(--content-width)) / 2 + var(--gutter)));
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -.02em;
 }
-main { max-width: 48rem; margin: auto; padding: 1.5rem 1rem; overflow-wrap: anywhere; }
+main { max-width: var(--content-width); margin: auto; padding: clamp(1.25rem, 3vw, 2.5rem) var(--gutter); overflow-wrap: anywhere; }
 h1, h2, h3 { text-wrap: balance; line-height: 1.22; letter-spacing: -.02em; }
 h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); }
 h2 { font-size: 1.45rem; margin-block: 0 .6rem; }
@@ -52,13 +58,12 @@ output, time, input[type=number] { font-variant-numeric: tabular-nums; }
 button.secondary { background: white; color: var(--forest); margin-top: .75rem; }
 button.text-action { background: transparent; color: var(--forest); border: 0; text-decoration: underline; }
 header { display: flex; align-items: center; gap: .55rem; }
-main:has(.auth-layout) { max-width: 74rem; }
-.auth-layout { display: grid; align-items: center; max-width: 32rem; margin: auto; gap: 1.5rem; }
+.auth-layout { display: grid; align-items: center; max-width: none; margin: auto; gap: 1.5rem; }
 .auth-art { color: var(--forest); display: grid; align-items: center; }
-.art-heading { font-size: clamp(2.6rem, 6vw, 5.6rem); line-height: .98; letter-spacing: -.055em; font-weight: 650; padding: .65em .5em; }
+.art-heading { font-size: clamp(2.6rem, 6vw, 5.6rem); line-height: .98; letter-spacing: -.055em; font-weight: 650; padding-block: .4em; }
 .art-heading span { color: var(--sage); }
 .auth-art img { width: 100%; height: auto; display: block; }
-.auth-card { padding: 0 .4rem 1rem; margin: 0; background: transparent; border: 0; }
+.auth-card { padding: 0; margin: 0; background: transparent; border: 0; }
 .auth-card h1 { margin: 0 0 1.2rem; font-size: clamp(1.9rem, 3vw, 2.6rem); }
 .auth-card [role=status]:empty { margin: 0; }
 .auth-card label { font-weight: 550; }
@@ -73,7 +78,7 @@ main:has(.auth-layout) { max-width: 74rem; }
 .role-picker button { text-align: start; padding: 1rem; }
 .role-picker span { display: block; font-size: 1rem; font-weight: 400; }
 @media (max-width: 759px) {
-  .auth-art { grid-template-columns: 1fr 1.45fr; }
+  .auth-art { grid-template-columns: 1fr minmax(0, 9rem); gap: 1rem; }
   .art-heading { font-size: clamp(1.7rem, 6vw, 2.4rem); align-self: center; }
 }
 @media (min-width: 760px) {
@@ -85,11 +90,10 @@ header, h1, h2, .art-heading {
   font-weight: 900;
   letter-spacing: -.02em;
 }
-main:has(.intro) { max-width: 75rem; }
 .intro { padding-block: clamp(.5rem, 3vw, 3rem); }
 .intro-copy { align-self: center; }
 .intro-copy h1 { font-size: clamp(2.8rem, 6vw, 5.4rem); line-height: 1.02; margin: 0; max-width: 12ch; }
-.intro-copy p { max-width: 42ch; }
+.intro-copy p { max-width: 38ch; margin-block: 1rem 1.5rem; }
 .intro-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem 1.2rem; }
 .intro-actions a { min-height: 48px; display: inline-flex; align-items: center; color: var(--forest); text-underline-offset: .2em; }
 .intro-actions a:first-child { border-radius: 2rem; padding: .65rem 1.6rem; background: var(--forest); color: var(--cream); font-weight: 650; text-decoration: none; }
@@ -97,8 +101,10 @@ main:has(.intro) { max-width: 75rem; }
 .intro img { display: block; width: 100%; height: auto; }
 .intro-roles { display: grid; gap: 1.25rem; padding: 1.5rem; background: #eff3e7; border-radius: 1.5rem; }
 .intro-roles details { margin: 0; padding: 0; background: transparent; border: 0; }
-.intro-roles ol { margin: .4rem 0; padding-inline-start: 1.5rem; }
-.intro-roles li + li { margin-top: .65rem; }
+.intro-roles ol { margin: .5rem 0 1rem; padding-inline-start: 1.4rem; }
+.intro-roles li { margin: 0; }
+.intro-roles li + li { margin-top: .85rem; }
+.intro-roles li strong { display: block; }
 @media (min-width: 760px) {
   .intro { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
   .intro figure { margin: 0; }
@@ -112,3 +118,5 @@ button.guide-trigger { width: auto; margin-top: .5rem; padding-inline: 0; border
 .welcome-guide p { margin-block: .5rem 1rem; }
 .welcome-guide .intro-roles { gap: .25rem; padding: .5rem 1rem; margin-bottom: 1rem; }
 .welcome-guide a { display: flex; justify-content: center; align-items: center; min-height: 48px; color: inherit; }
+
+.welcome-guide details + details { border-top: 1px solid #cbd6bf; border-radius: 0; }

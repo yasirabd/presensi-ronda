@@ -17,10 +17,10 @@ export function Introduction() {
   return <div className="intro">
     <div className="intro-copy">
       <h1>Malam ini, siapa yang ronda?</h1>
-      <p>Lihat giliran jaga Anda di Ronda Pak. Saat tiba di pos, cek lokasi dan verifikasi wajah lewat HP untuk mencatat kehadiran.</p>
+      <p>Cek jadwal ronda dari HP. Saat giliran Anda mulai, datang ke pos dan catat kehadiran dengan lokasi dan kamera depan.</p>
       <div className="intro-actions">
         <Link href="/daftar">Buat akun</Link>
-        <Link href="/masuk">Sudah punya akun? Masuk</Link>
+        <Link href="/masuk">Masuk</Link>
       </div>
       <button ref={trigger} className="guide-trigger" onClick={()=>dialog.current?.showModal()}>Cara pakai Ronda Pak</button>
     </div>
@@ -29,19 +29,25 @@ export function Introduction() {
       onClose={()=>{remember();trigger.current?.focus();}}>
       <img src="/ronda-pak-owl.png" width="56" height="56" alt=""/>
       <h2 id="guide-title">Pertama kali pakai Ronda Pak?</h2>
-      <p>Pilih petunjuk sesuai kegiatan Anda.</p>
+      <p>Pilih panduan warga atau pengurus RT.</p>
       <div className="intro-roles">
-      <details name="panduan-peran"><summary>Cara absen sebagai warga</summary><ol>
-        <li>Buka undangan pengurus dan masuk dengan email yang diundang. Pilih <strong>Gabung RT</strong>.</li>
-        <li>Setelah pengurus memeriksa identitas Anda, buka <strong>Pendaftaran wajah saya</strong> untuk mendaftar lewat kamera depan.</li>
-        <li>Saat giliran dimulai, datang ke pos dan pilih <strong>Absen sekarang</strong>. Izinkan lokasi, buka kamera, lalu pilih <strong>Verifikasi kehadiran</strong>. Tunggu keterangan <strong>Hadir</strong>.</li>
-      </ol></details>
-      <details name="panduan-peran"><summary>Cara menyiapkan RT</summary><ol>
-        <li>Masuk dan pilih <strong>Daftarkan RT baru</strong>. Aktifkan akses pengurus dengan kode aplikasi autentikator, lalu pilih <strong>Buat ruang RT</strong>.</li>
-        <li>Buka <strong>Undang warga</strong>, masukkan email warga, buat undangan, lalu bagikan tautannya. Setelah warga bergabung, buka <strong>Verifikasi identitas warga</strong>.</li>
-        <li>Simpan koordinat dan radius di <strong>Atur lokasi pos</strong>. Di <strong>Jadwalkan giliran</strong>, pilih warga dan masukkan nama pos yang sama.</li>
-        <li>Buka <strong>Rekap presensi</strong> untuk memeriksa kehadiran dan mengunduh CSV.</li>
-      </ol></details>
+        <details name="panduan-peran">
+          <summary>Cara absen sebagai warga</summary>
+          <ol>
+            <li><strong>Gabung RT.</strong> Buka undangan dari pengurus. Masuk dengan alamat email yang diundang, lalu pilih Gabung RT.</li>
+            <li><strong>Daftarkan wajah sekali.</strong> Setelah pengurus menyetujui pendaftaran, buka Pendaftaran wajah saya dan ikuti petunjuk kamera.</li>
+            <li><strong>Absen saat giliran Anda.</strong> Di pos ronda, pilih Absen sekarang dan izinkan lokasi. Buka kamera depan, lalu pilih Verifikasi kehadiran. Status Hadir berarti presensi sudah tercatat.</li>
+          </ol>
+        </details>
+        <details name="panduan-peran">
+          <summary>Cara menyiapkan RT</summary>
+          <ol>
+            <li><strong>Buat RT.</strong> Setelah masuk, pilih Daftarkan RT baru. Aktifkan akses pengurus menggunakan aplikasi autentikator, isi nama RT, lalu pilih Buat ruang RT.</li>
+            <li><strong>Undang warga.</strong> Di menu Undang warga, buat tautan untuk email warga dan bagikan. Setelah warga bergabung, periksa identitasnya di menu Verifikasi identitas warga.</li>
+            <li><strong>Atur giliran.</strong> Simpan koordinat dan radius di Atur lokasi pos. Di Jadwalkan giliran, pilih warga, waktu jaga, dan gunakan nama pos yang sama.</li>
+            <li><strong>Lihat kehadiran.</strong> Buka Rekap presensi untuk memeriksa siapa yang hadir atau mengunduh rekap CSV.</li>
+          </ol>
+        </details>
       </div>
       <button onClick={()=>dialog.current?.close()}>Lanjut ke beranda</button>
       <Link href="/masuk" onClick={remember}>Lewati dan masuk</Link>

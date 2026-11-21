@@ -97,8 +97,8 @@ export function AuthForm({db, invited, recovering, onReset}:{
     <div className="art-heading">Presensi<br/>ronda RT<span aria-hidden="true">.</span></div>
     <img src="/ronda-bersama.webp" width="1200" height="900" alt="Tiga bapak berkumpul di pos ronda kompleks perumahan."/>
   </aside><section className="auth-card"><h1>{sent?'Periksa email Anda':titles[mode]}</h1>
-    {invited && !sent && mode!=='reset' && <p>Gunakan email yang menerima undangan RT.</p>}
-    {mode==='forgot' && !sent && <p>Kami akan mengirim tautan untuk membuat kata sandi baru.</p>}
+    {invited && !sent && mode!=='reset' && <p>Masuk atau daftar dengan alamat email yang diundang pengurus.</p>}
+    {mode==='forgot' && !sent && <p>Masukkan alamat email akun Anda. Kami akan mengirim tautan untuk mengganti kata sandi.</p>}
     <p role="status">{message}</p>
     {googleEnabled && !sent && (mode==='login'||mode==='signup') && <>
       <button className="google-action" disabled={busy} onClick={googleLogin}>Lanjutkan dengan Google</button>
@@ -112,6 +112,6 @@ export function AuthForm({db, invited, recovering, onReset}:{
     </form>}
     {mode==='login' && <><button className="text-action" disabled={busy} onClick={()=>switchTo('forgot')}>Lupa kata sandi?</button>
       <button className="signup-action" disabled={busy} onClick={()=>switchTo('signup')}>Daftar akun baru</button></>}
-    {mode!=='login' && mode!=='reset' && <button className="text-action" disabled={busy} onClick={()=>switchTo('login')}>Kembali ke masuk</button>}
+    {mode!=='login' && mode!=='reset' && <button className="text-action" disabled={busy} onClick={()=>switchTo('login')}>Kembali ke halaman masuk</button>}
   </section></div>;
 }
