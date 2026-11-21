@@ -98,7 +98,7 @@ export default function Home() {
   const button=(label:string)=><button disabled={busy}>{label}</button>;
   if(!db)return <p>Layanan RT belum terhubung. Hubungi pengurus.</p>;
   if(!session || recovering)return <>
-    <img className="auth-image" src="/ronda-malam.webp" width="1200" height="600" alt=""/>
+
     <AuthForm db={db} invited={Boolean(invitation)} recovering={Boolean(session)&&recovering} onReset={()=>{
       const current=new URL(location.href);current.searchParams.delete('pemulihan');current.hash='';
       window.history.replaceState(null,'',current);setRecovering(false);setNotice('Kata sandi baru tersimpan.');
@@ -107,9 +107,13 @@ export default function Home() {
   const onboarding=roomsLoaded && !rooms.length;
   const intent=invitation?'join':path;
   return <><h1>{onboarding?'Mulai di Ronda Pak':'Ruang ronda'}</h1><p role="status">{notice}</p>
-    {onboarding && !intent && <section><h2>Apa yang ingin Anda lakukan?</h2>
-      <button onClick={()=>setPath('join')}>Gabung RT saya</button>
-      <button className="secondary" onClick={()=>setPath('create')}>Daftarkan RT baru</button>
+    {rooms.length>0 && <section className="schedule-panel"><label>RT aktif<select value={rt} onChange={e=>{setRT(e.target.value);setMembers([]);setShifts([]);setLink('');setNotice('')}}>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
+    <h2>Jadwal ronda</h2><small>Zona waktu {zone}</small>{shifts.length?<ul>{shifts.map(s=><li key={s.id}><strong>{s.post}</strong><small>{displayTime(s.starts_at)} hingga {displayTime(s.ends_at)}</small>{db && s.user_id===session.user.id && Date.parse(s.starts_at)<=clock && clock<Date.parse(s.ends_at) && <LocationCheck db={db} rt={rt} shift={s.id} onAttendance={()=>refresh(n=>n+1)}/>}</li>)}</ul>:<p>Belum ada jadwal aktif atau mendatang.</p>}</section>}
+    {rt && <details><summary>Riwayat presensi saya</summary>{history.length?<ul>{history.map(h=><li key={h.id}>{h.post} · {h.status}<small>{displayTime(h.starts_at)}</small></li>)}</ul>:<p>Belum ada riwayat presensi.</p>}</details>}
+    {rt && <FaceRegistration key={rt+':face:'+revision} db={db} rt={rt}/>}
+    {onboarding && !intent && <section className="role-picker"><h2>Pilih cara bergabung</h2>
+      <button onClick={()=>setPath('join')}><strong>Gabung RT saya</strong><span>Saya punya undangan dari pengurus</span></button>
+      <button className="secondary" onClick={()=>setPath('create')}><strong>Daftarkan RT baru</strong><span>Saya akan mengelola ronda warga</span></button>
     </section>}
     {onboarding && intent && <button className="text-action" onClick={()=>{
       setInvitation('');setPath('');setNotice('');const current=new URL(location.href);
@@ -134,10 +138,6 @@ export default function Home() {
       const {data:id,error}=await db.rpc('create_rt',{label:data.get('label')});if(error)throw error;
       setMembers([]);setShifts([]);setLink('');setRT(id);return 'Ruang kerja dibuat.';
     })}>{field('Nama RT dan wilayah','label')}{button('Buat ruang RT')}</form></details>}
-    {rooms.length>0 && <section><label>RT aktif<select value={rt} onChange={e=>{setRT(e.target.value);setMembers([]);setShifts([]);setLink('');setNotice('')}}>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
-    <h2>Jadwal ronda</h2><small>Zona waktu {zone}</small>{shifts.length?<ul>{shifts.map(s=><li key={s.id}><strong>{s.post}</strong><small>{displayTime(s.starts_at)} hingga {displayTime(s.ends_at)}</small>{db && s.user_id===session.user.id && Date.parse(s.starts_at)<=clock && clock<Date.parse(s.ends_at) && <LocationCheck db={db} rt={rt} shift={s.id} onAttendance={()=>refresh(n=>n+1)}/>}</li>)}</ul>:<p>Belum ada jadwal aktif atau mendatang.</p>}</section>}
-    {rt && <details><summary>Riwayat presensi saya</summary>{history.length?<ul>{history.map(h=><li key={h.id}>{h.post} · {h.status}<small>{displayTime(h.starts_at)}</small></li>)}</ul>:<p>Belum ada riwayat presensi.</p>}</details>}
-    {rt && <FaceRegistration key={rt+':face:'+revision} db={db} rt={rt}/>}
     {manager && verified && <><details><summary>Verifikasi identitas warga</summary><form onSubmit={submit(async data=>{
       const {error}=await db.rpc('allow_face_registration',{target:rt,member:data.get('member')});
       if(error)throw error;return 'Pendaftaran wajah warga diizinkan.';

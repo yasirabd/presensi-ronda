@@ -1,5 +1,5 @@
 'use client';
-import {useState, type FormEvent} from 'react';
+import {useEffect, useState, type FormEvent} from 'react';
 import type {SupabaseClient} from '@supabase/supabase-js';
 
 type Mode = 'login' | 'signup' | 'forgot' | 'reset';
@@ -16,6 +16,37 @@ export function AuthForm({db, invited, recovering, onReset}:{
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState('');
   const [sent,setSent]=useState(false);
+  const [googleEnabled,setGoogleEnabled]=useState(false);
+  useEffect(()=>{
+    const controller=new AbortController();
+    fetch(process.env.NEXT_PUBLIC_SUPABASE_URL+'/auth/v1/settings',{
+      headers:{apikey:process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!},signal:controller.signal
+    }).then(r=>r.ok?r.json():null).then(settings=>{
+      if(!controller.signal.aborted)setGoogleEnabled(settings?.external?.google===true);
+    }).catch(()=>{});
+    const params=new URLSearchParams(location.hash.slice(1));
+    if(params.has('error') || new URLSearchParams(location.search).has('error')){
+      setMessage('Proses masuk belum selesai. Silakan coba lagi.');
+    }
+    return ()=>controller.abort();
+  },[]);
+  function returnUrl() {
+    const redirect=new URL('/',location.origin);
+    const invite=new URLSearchParams(location.search).get('undangan');
+    if(invite)redirect.searchParams.set('undangan',invite);
+    return redirect;
+  }
+  async function googleLogin(){
+    setBusy(true);setMessage('');
+    try {
+      const {error}=await db.auth.signInWithOAuth({provider:'google',options:{
+        redirectTo:returnUrl().href,queryParams:{prompt:'select_account'}
+      }});
+      if(error)throw error;
+    } catch {
+      setBusy(false);setMessage('Google belum bisa dibuka. Coba lagi atau masuk dengan email.');
+    }
+  }
   function switchTo(next:Mode) {
     setChoice(next);setPassword('');setMessage('');setSent(false);
   }
@@ -24,9 +55,7 @@ export function AuthForm({db, invited, recovering, onReset}:{
     if(busy)return;
     setBusy(true);setMessage('');
     const address=email.trim();
-    const redirect=new URL('/',location.origin);
-    const invite=new URLSearchParams(location.search).get('undangan');
-    if(invite)redirect.searchParams.set('undangan',invite);
+    const redirect=returnUrl();
     try {
       if(mode==='forgot'){
         redirect.searchParams.set('pemulihan','1');
@@ -57,10 +86,17 @@ export function AuthForm({db, invited, recovering, onReset}:{
       setMessage(errors[code||''] || 'Permintaan belum berhasil. Periksa koneksi dan coba lagi.');
     } finally {setBusy(false);}
   }
-  return <section className="auth-card"><h1>{sent?'Periksa email Anda':titles[mode]}</h1>
+  return <div className="auth-layout"><aside className="auth-art" aria-label="Ilustrasi ronda malam">
+    <div className="art-heading">Presensi<br/>ronda RT<span aria-hidden="true">.</span></div>
+    <img src="/ronda-malam.webp" width="1200" height="600" alt="Burung hantu menemani warga di pos ronda."/>
+  </aside><section className="auth-card"><h1>{sent?'Periksa email Anda':titles[mode]}</h1>
     {invited && !sent && mode!=='reset' && <p>Gunakan email yang menerima undangan RT.</p>}
     {mode==='forgot' && !sent && <p>Kami akan mengirim tautan untuk membuat kata sandi baru.</p>}
     <p role="status">{message}</p>
+    {googleEnabled && !sent && (mode==='login'||mode==='signup') && <>
+      <button className="google-action" disabled={busy} onClick={googleLogin}>Lanjutkan dengan Google</button>
+      <div className="email-divider">atau dengan email</div>
+    </>}
     {!sent && <form onSubmit={submit}>
       {mode!=='reset' && <label>Alamat email<input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label>}
       {mode!=='forgot' && <label>{mode==='reset'?'Kata sandi baru':'Kata sandi'}<input type="password" autoComplete={mode==='login'?'current-password':'new-password'} minLength={mode==='login'?undefined:8} required value={password} onChange={e=>setPassword(e.target.value)}/>
@@ -68,7 +104,7 @@ export function AuthForm({db, invited, recovering, onReset}:{
       <button disabled={busy}>{busy?'Mohon tunggu…':actions[mode]}</button>
     </form>}
     {mode==='login' && <><button className="text-action" disabled={busy} onClick={()=>switchTo('forgot')}>Lupa kata sandi?</button>
-      <button className="secondary" disabled={busy} onClick={()=>switchTo('signup')}>Daftar akun baru</button></>}
+      <button className="signup-action" disabled={busy} onClick={()=>switchTo('signup')}>Daftar akun baru</button></>}
     {mode!=='login' && mode!=='reset' && <button className="text-action" disabled={busy} onClick={()=>switchTo('login')}>Kembali ke masuk</button>}
-  </section>;
+  </section></div>;
 }

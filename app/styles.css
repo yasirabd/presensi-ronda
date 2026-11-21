@@ -13,9 +13,9 @@ body {
   font: 1.125rem/1.55 var(--font-geist-sans), system-ui, sans-serif;
 }
 header {
-  background: var(--forest);
-  color: var(--cream);
-  border-bottom: 4px solid var(--gold);
+  background: var(--paper);
+  color: var(--forest);
+  border-bottom: 1px solid #d9dece;
   padding: .8rem max(1rem, calc((100vw - 46rem) / 2));
   font-size: 1.5rem;
   font-weight: 700;
@@ -26,7 +26,7 @@ h1, h2, h3 { text-wrap: balance; line-height: 1.22; letter-spacing: -.02em; }
 h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); }
 h2 { font-size: 1.45rem; margin-block: 0 .6rem; }
 p { max-width: 68ch; text-wrap: pretty; }
-section, details { background: white; border: 1px solid var(--sage); border-radius: 1rem; padding: 1.25rem; margin: 1rem 0; }
+section, details { background: white; border: 1px solid #d9dece; border-radius: 1rem; padding: 1.25rem; margin: 1rem 0; }
 form, label { display: grid; gap: .5rem; min-width: 0; }
 form { gap: 1rem; }
 input, select, button {
@@ -49,9 +49,36 @@ output, time, input[type=number] { font-variant-numeric: tabular-nums; }
   section, details { padding: 1rem; }
   section details { padding: .75rem; }
 }
-.auth-image { display: block; width: min(100%, 30rem); height: auto; max-height: 10rem; object-fit: cover; border-radius: 1rem; margin: 0 auto; }
-.auth-card { max-width: 30rem; margin: 1rem auto; }
-.auth-card h1 { margin: 0 0 1rem; }
-.auth-card [role=status]:empty { margin: 0; }
 button.secondary { background: white; color: var(--forest); margin-top: .75rem; }
 button.text-action { background: transparent; color: var(--forest); border: 0; text-decoration: underline; }
+header { display: flex; align-items: center; gap: .55rem; }
+header::before { content: ""; width: 1.8rem; aspect-ratio: 1; border-radius: 50%; background: var(--forest); box-shadow: inset .55rem -.2rem var(--gold); }
+main:has(.auth-layout) { max-width: 74rem; }
+.auth-layout { display: grid; align-items: center; max-width: 32rem; margin: auto; gap: 1.5rem; }
+.auth-art { background: var(--cream); color: var(--forest); border-radius: 1.6rem; overflow: hidden; display: grid; }
+.art-heading { font-size: clamp(2.6rem, 6vw, 5.6rem); line-height: .98; letter-spacing: -.055em; font-weight: 650; padding: .65em .5em; }
+.art-heading span { color: var(--sage); }
+.auth-art img { width: 100%; height: auto; display: block; }
+.auth-card { padding: 0 .4rem 1rem; margin: 0; background: transparent; border: 0; }
+.auth-card h1 { margin: 0 0 1.2rem; font-size: clamp(1.9rem, 3vw, 2.6rem); }
+.auth-card [role=status]:empty { margin: 0; }
+.auth-card label { font-weight: 550; }
+.auth-card input { background: white; font-weight: 400; }
+.auth-card button { border-radius: .85rem; }
+.auth-card .google-action { background: white; color: var(--forest); border-color: var(--sage); }
+.email-divider { display: flex; align-items: center; gap: .8rem; margin: 1rem 0; font-size: .9rem; color: #53624e; }
+.email-divider::before, .email-divider::after { content: ""; height: 1px; flex: 1; background: #c5cfbd; }
+.signup-action { background: transparent; border: 0; color: var(--forest); text-decoration: underline; }
+.schedule-panel { background: #f1f5e9; border-radius: 1.5rem; }
+.schedule-panel h2 { margin-top: 1.4rem; }
+.role-picker button { text-align: start; padding: 1rem; }
+.role-picker span { display: block; font-size: 1rem; font-weight: 400; }
+@media (max-width: 759px) {
+  .auth-art { grid-template-columns: 1fr 1.45fr; align-items: stretch; }
+  .art-heading { font-size: clamp(1.7rem, 6vw, 2.4rem); align-self: center; }
+  .auth-art img { height: 100%; object-fit: cover; }
+}
+@media (min-width: 760px) {
+  .auth-layout { grid-template-columns: 1.1fr 1fr; max-width: none; gap: clamp(2rem, 6vw, 5rem); padding-block: 2rem; }
+  .auth-card { max-width: 28rem; width: 100%; }
+}
