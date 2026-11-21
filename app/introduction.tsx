@@ -10,7 +10,7 @@ export function Introduction() {
         <Link href="/masuk">Sudah punya akun? Masuk</Link>
       </div>
     </div>
-    <figure><img src="/ronda-tiga-generasi.webp" width="1200" height="800" alt="Tiga bapak lintas generasi berjaga di pos ronda bersama maskot burung hantu."/></figure>
+    <figure><img src="/pos-ronda-kompleks.webp" width="1400" height="700" alt="Tiga bapak lintas generasi berjaga di pos ronda di tepi gang perumahan."/></figure>
     <div className="intro-roles">
       <div><h2>Untuk warga</h2><p>Gabung lewat undangan pengurus. Setelah wajah terdaftar, Anda bisa absen saat giliran jaga dimulai.</p></div>
       <div><h2>Untuk pengurus RT</h2><p>Daftarkan RT, undang warga, lalu susun giliran. Rekap kehadiran bisa diunduh setiap bulan.</p></div>
