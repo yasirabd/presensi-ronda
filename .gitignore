@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.env*
+!.env.example
+*.tsbuildinfo
+
+face/.venv/
+face/models/*.onnx
+__pycache__/
+face/models/*.tmp
