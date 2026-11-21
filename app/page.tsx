@@ -1,11 +1,12 @@
 'use client';
-import {useEffect, useState, type FormEvent} from 'react';
+import {useEffect, useRef, useState, type FormEvent} from 'react';
 import {createClient, type Session} from '@supabase/supabase-js';
 import {RTSettings} from './rt-settings';
 import {FaceRegistration} from './face';
 import {LocationCheck} from './location';
 import {AuthForm} from './auth';
 import {Attendance} from './attendance';
+import {ManagerNavigation, managerSections, type ManagerSection} from './manager-navigation';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -31,8 +32,12 @@ export default function Home() {
   const [recovering,setRecovering]=useState(false);
   const [roomsLoaded,setRoomsLoaded]=useState(false);
   const [link,setLink] = useState('');
+  const [managerSection,setManagerSection] = useState<ManagerSection>('jadwal');
+  const managerHeading=useRef<HTMLHeadingElement>(null);
   useEffect(()=>{
-    setInvitation(new URLSearchParams(location.search).get('undangan') || '');
+    const incomingInvitation=new URLSearchParams(location.search).get('undangan');
+    setInvitation(incomingInvitation || '');
+    if(incomingInvitation)setManagerSection('pengaturan');
 
     const sub=db?.auth.onAuthStateChange((event,s)=>{
       if(event==='PASSWORD_RECOVERY')setRecovering(true);
@@ -102,11 +107,14 @@ export default function Home() {
   </>;
   const onboarding=roomsLoaded && !rooms.length;
   const intent=invitation?'join':path;
-  return <><h1>{onboarding?'Mulai di Ronda Pak':'Ruang ronda'}</h1><p role="status">{notice}</p>
-    {rooms.length>0 && <section className="schedule-panel"><label>RT aktif<select value={rt} onChange={e=>{setRT(e.target.value);setMembers([]);setShifts([]);setLink('');setNotice('')}}>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
-    <h2>Jadwal ronda</h2><small>Zona waktu {zone}</small>{shifts.length?<ul>{shifts.map(s=><li key={s.id}><strong>{s.post}</strong><small>{displayTime(s.starts_at)} hingga {displayTime(s.ends_at)}</small>{db && s.user_id===session.user.id && Date.parse(s.starts_at)<=clock && clock<Date.parse(s.ends_at) && <LocationCheck db={db} rt={rt} shift={s.id} onAttendance={()=>refresh(n=>n+1)}/>}</li>)}</ul>:<p>Belum ada jadwal aktif atau mendatang.</p>}</section>}
+  const chooseRT=<label>RT aktif<select value={rt} onChange={e=>{setRT(e.target.value);setManagerSection('jadwal');setMembers([]);setShifts([]);setLink('');setNotice('')}}>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>;
+  const ownShifts=shifts.filter(shift=>shift.user_id===session.user.id);
+  const personalSchedule=<>
+    {rooms.length>0 && <section className="schedule-panel"><h2>Jadwal ronda</h2><small>Zona waktu {zone}</small>{ownShifts.length?<ul>{ownShifts.map(s=><li key={s.id}><strong>{s.post}</strong><small>{displayTime(s.starts_at)} hingga {displayTime(s.ends_at)}</small>{(!manager || managerSection==='presensi') && s.user_id===session.user.id && Date.parse(s.starts_at)<=clock && clock<Date.parse(s.ends_at) && <LocationCheck db={db} rt={rt} shift={s.id} onAttendance={()=>refresh(n=>n+1)}/>}</li>)}</ul>:<p>Belum ada jadwal aktif atau mendatang.</p>}</section>}
     {rt && <details><summary>Riwayat presensi saya</summary>{history.length?<ul>{history.map(h=><li key={h.id}>{h.post} · {h.status}<small>{displayTime(h.starts_at)}</small></li>)}</ul>:<p>Belum ada riwayat presensi.</p>}</details>}
-    {rt && <FaceRegistration key={rt+':face:'+revision} db={db} rt={rt}/>}
+    {rt && (!manager || managerSection==='presensi') && <FaceRegistration key={rt+':face:'+revision} db={db} rt={rt}/>}
+  </>;
+  const rtMembership=<>
     {onboarding && !intent && <section className="role-picker"><h2>Pilih cara bergabung</h2>
       <button onClick={()=>setPath('join')}><strong>Gabung RT saya</strong><span>Saya punya undangan dari pengurus</span></button>
       <button className="secondary" onClick={()=>setPath('create')}><strong>Daftarkan RT baru</strong><span>Saya akan mengelola ronda warga</span></button>
@@ -123,22 +131,41 @@ export default function Home() {
       const {data:id,error}=await db.rpc('create_rt',{label:data.get('label')});if(error)throw error;
       setMembers([]);setShifts([]);setLink('');setRT(id);setPath('');return 'RT berhasil dibuat. Anda bisa mengundang warga sekarang.';
     })}>{field('Nama RT dan wilayah','label')}{button('Buat RT')}</form></details>}
-    {manager && <><details><summary>Verifikasi identitas warga</summary><form onSubmit={submit(async data=>{
-      const {error}=await db.rpc('allow_face_registration',{target:rt,member:data.get('member')});
-      if(error)throw error;return 'Pendaftaran wajah warga diizinkan.';
-    })}><label>Warga yang diperiksa langsung<select name="member">{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>{button('Konfirmasi identitas warga')}</form></details><section><h2>Undang warga</h2><form onSubmit={submit(async data=>{
-      const {data:code,error}=await db.rpc('invite_resident',{target:rt,recipient:data.get('email')});if(error)throw error;
-      setLink(location.origin+'/?undangan='+code);return 'Bagikan tautan ke warga yang diundang.';
-    })}>{field('Email warga','email','email')}{button('Buat undangan')}{link && <output>{link}</output>}</form></section>
-    <details key={rt}><summary>Atur lokasi pos</summary><form onSubmit={submit(async data=>{
-      const {error}=await db.from('post_locations').upsert({rt_id:rt,post:String(data.get('post')),latitude:Number(data.get('latitude')),longitude:Number(data.get('longitude')),radius_m:Number(data.get('radius'))});
-      if(error)throw error;return 'Lokasi pos tersimpan.';
-    })}><label>Nama pos sesuai jadwal<input list="nama-pos" name="post" required maxLength={120}/></label>
-    <datalist id="nama-pos">{Array.from(new Set(shifts.map(s=>s.post))).map(post=><option key={post} value={post}/>)}</datalist>
-    <label>Lintang<input type="number" name="latitude" step="any" min="-90" max="90" required/></label>
-    <label>Bujur<input type="number" name="longitude" step="any" min="-180" max="180" required/></label>
-    <label>Radius dalam meter<input type="number" name="radius" min="10" max="500" defaultValue="75" required/></label>
-    {button('Simpan lokasi pos')}</form></details>
+  </>;
+  const rtSettings=rt && <RTSettings key={rt} db={db} rt={rt} members={members} manager={manager} isOwner={owner} revision={revision} changed={()=>refresh(n=>n+1)}/>;
+  async function signOut() {
+    if(!db)return;
+    const {error}=await db.auth.signOut();
+    if(error)setNotice(error.message);
+    else location.reload();
+  }
+
+  if(!manager)return <>
+    <h1>{onboarding?'Mulai di Ronda Pak':'Ruang ronda'}</h1>
+    <p role="status">{notice}</p>
+    {rooms.length>0 && chooseRT}
+    {personalSchedule}
+    {rtMembership}
+    {rtSettings}
+    <button onClick={signOut}>Keluar</button>
+  </>;
+
+  return <div className="manager-layout">
+    <ManagerNavigation current={managerSection} onLogout={signOut} onSelect={section=>{
+      setManagerSection(section);
+      setNotice('');
+      requestAnimationFrame(()=>{
+        managerHeading.current?.focus({preventScroll:true});
+        window.scrollTo(0,0);
+      });
+    }}/>
+    <div className="manager-content">
+      <div className="manager-heading">
+        <h1 ref={managerHeading} tabIndex={-1}>{managerSections.find(section=>section.id===managerSection)?.label}</h1>
+        {chooseRT}
+      </div>
+      <p role="status" className="manager-notice">{notice}</p>
+      <div hidden={managerSection!=='jadwal'}>
     <section><h2>Jadwalkan giliran</h2><form onSubmit={submit(async data=>{
       const {error}=await db.from('shifts').insert({rt_id:rt,user_id:data.get('member'),post:data.get('post'),starts_at:new Date(String(data.get('start'))).toISOString(),ends_at:new Date(String(data.get('end'))).toISOString()});
       if(error)throw error;return 'Jadwal tersimpan.';
@@ -147,9 +174,47 @@ export default function Home() {
       const {error}=await db.rpc('revise_shift',{target:rt,shift_key:f.get('shift'),member:f.get('member'),pos:f.get('post'),start_time:new Date(String(f.get('start'))).toISOString(),end_time:new Date(String(f.get('end'))).toISOString()});
       if(error)throw error;return 'Jadwal diperbarui.';
     })}><label>Giliran<select name="shift" required>{shifts.filter(s=>Date.parse(s.starts_at)>clock).map(s=><option key={s.id} value={s.id}>{s.post} · {displayTime(s.starts_at)} · {members.find(m=>m.user_id===s.user_id)?.email}</option>)}</select></label>
-    <label>Anggota<select name="member" required>{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>{field('Nama pos','post')}{field('Mulai baru (waktu perangkat)','start','datetime-local')}{field('Selesai baru (waktu perangkat)','end','datetime-local')}{button('Perbarui giliran')}</form></details></section></>}
-    {manager && <Attendance key={rt} db={db} rt={rt} revision={revision}/>}
-    {rt && <RTSettings key={rt} db={db} rt={rt} members={members} manager={manager} isOwner={owner} revision={revision} changed={()=>refresh(n=>n+1)}/>}
-    <button onClick={async()=>{const {error}=await db.auth.signOut();if(error)setNotice(error.message);else location.reload()}}>Keluar</button>
-    </>;
+    <label>Anggota<select name="member" required>{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>{field('Nama pos','post')}{field('Mulai baru (waktu perangkat)','start','datetime-local')}{field('Selesai baru (waktu perangkat)','end','datetime-local')}{button('Perbarui giliran')}</form></details></section>
+        <section className="schedule-panel">
+          <h2>Giliran aktif dan mendatang</h2>
+          <small>Zona waktu {zone}</small>
+          {shifts.length ? <ul>{shifts.map(shift=><li key={shift.id}>
+            <strong>{shift.post}</strong>
+            <small>{members.find(member=>member.user_id===shift.user_id)?.email}</small>
+            <small>{displayTime(shift.starts_at)} hingga {displayTime(shift.ends_at)}</small>
+          </li>)}</ul> : <p>Belum ada giliran. Isi formulir di atas untuk menambahkan jadwal.</p>}
+        </section>
+      </div>
+      <div hidden={managerSection!=='presensi'}>
+        {personalSchedule}
+      </div>
+      <div hidden={managerSection!=='warga'}>
+    <details><summary>Verifikasi identitas warga</summary><form onSubmit={submit(async data=>{
+      const {error}=await db.rpc('allow_face_registration',{target:rt,member:data.get('member')});
+      if(error)throw error;return 'Pendaftaran wajah warga diizinkan.';
+    })}><label>Warga yang diperiksa langsung<select name="member">{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>{button('Konfirmasi identitas warga')}</form></details><section><h2>Undang warga</h2><form onSubmit={submit(async data=>{
+      const {data:code,error}=await db.rpc('invite_resident',{target:rt,recipient:data.get('email')});if(error)throw error;
+      setLink(location.origin+'/?undangan='+code);return 'Bagikan tautan ke warga yang diundang.';
+    })}>{field('Email warga','email','email')}{button('Buat undangan')}{link && <output>{link}</output>}</form></section>
+      </div>
+      <div hidden={managerSection!=='pos'}>
+    <section key={rt}><h2>Atur lokasi pos</h2><form onSubmit={submit(async data=>{
+      const {error}=await db.from('post_locations').upsert({rt_id:rt,post:String(data.get('post')),latitude:Number(data.get('latitude')),longitude:Number(data.get('longitude')),radius_m:Number(data.get('radius'))});
+      if(error)throw error;return 'Lokasi pos tersimpan.';
+    })}><label>Nama pos sesuai jadwal<input list="nama-pos" name="post" required maxLength={120}/></label>
+    <datalist id="nama-pos">{Array.from(new Set(shifts.map(s=>s.post))).map(post=><option key={post} value={post}/>)}</datalist>
+    <label>Lintang<input type="number" name="latitude" step="any" min="-90" max="90" required/></label>
+    <label>Bujur<input type="number" name="longitude" step="any" min="-180" max="180" required/></label>
+    <label>Radius dalam meter<input type="number" name="radius" min="10" max="500" defaultValue="75" required/></label>
+    {button('Simpan lokasi pos')}</form></section>
+      </div>
+      <div hidden={managerSection!=='rekap'}>
+        <Attendance key={rt} db={db} rt={rt} revision={revision}/>
+      </div>
+      <div hidden={managerSection!=='pengaturan'}>
+        {rtSettings}
+        {rtMembership}
+      </div>
+    </div>
+  </div>;
 }
