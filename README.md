@@ -4,11 +4,11 @@ Aplikasi SaaS presensi ronda RT menggunakan Next.js, TypeScript, Supabase Auth d
 
 ## Menjalankan lokal
 
-Gunakan Node 22 atau 24. Jalankan `npm ci`, salin `.env.example` ke `.env.local`, lalu isi URL dan publishable key proyek Supabase. Terapkan semua file SQL di `supabase/migrations` sesuai urutan nama ke database Supabase baru. Aktifkan pendaftaran dan login email dengan kata sandi, konfirmasi email, pemulihan kata sandi dan MFA TOTP. Izinkan redirect ke URL aplikasi lokal di pengaturan Auth. Jalankan `npm run dev` dan buka http://localhost:3000.
+Gunakan Node 22 atau 24. Jalankan `npm ci`, salin `.env.example` ke `.env.local`, lalu isi URL dan publishable key proyek Supabase. Terapkan semua file SQL di `supabase/migrations` sesuai urutan nama ke database Supabase baru. Aktifkan pendaftaran dan login email dengan kata sandi, konfirmasi email dan pemulihan kata sandi. Izinkan redirect ke URL aplikasi lokal di pengaturan Auth. Jalankan `npm run dev` dan buka http://localhost:3000.
 
-Pemilik masuk dengan email dan kata sandi, menyiapkan autentikator, membuat RT, dan membagikan undangan kepada alamat email warga. Setelah warga menerima undangan, pemilik dapat menetapkan pos dan waktu giliran. Warga melihat jadwal sendiri. Formulir waktu giliran memakai zona waktu perangkat pengurus. Daftar jadwal warga memakai zona waktu RT.
+Pemilik masuk dengan email dan kata sandi, membuat RT, dan membagikan undangan kepada alamat email warga. Setelah warga menerima undangan, pemilik dapat menetapkan pos dan waktu giliran. Warga melihat jadwal sendiri. Formulir waktu giliran memakai zona waktu perangkat pengurus. Daftar jadwal warga memakai zona waktu RT.
 
-Periksa build dengan `npm run build` dan tipe dengan `npm run typecheck`. Sebelum pilot, uji login email, MFA, dan isolasi dua RT dengan akun terpisah. Pemilik dengan 2FA dapat mencatat presensi manual per giliran, mengoreksi dengan alasan, dan mengunduh CSV per bulan serta warga. Pengurus mengatur koordinat serta radius melalui Atur lokasi pos menggunakan nama pos sesuai jadwal. Warga memeriksa lokasi pada giliran aktif melalui HTTPS atau localhost. Pengurus mengizinkan pendaftaran wajah setelah memeriksa identitas anggota. Warga menyetujui penggunaan templat per RT, mendaftarkan wajah, lalu bisa absen dengan lokasi dan kamera. Dasbor juga menyediakan kontak privasi, permintaan warga, dan pencabutan persetujuan.
+Periksa build dengan `npm run build` dan tipe dengan `npm run typecheck`. Sebelum pilot, uji login email dan isolasi dua RT dengan akun terpisah. Pemilik dapat mencatat presensi manual per giliran, mengoreksi dengan alasan, dan mengunduh CSV per bulan serta warga. Pengurus mengatur koordinat serta radius melalui Atur lokasi pos menggunakan nama pos sesuai jadwal. Warga memeriksa lokasi pada giliran aktif melalui HTTPS atau localhost. Pengurus mengizinkan pendaftaran wajah setelah memeriksa identitas anggota. Warga menyetujui penggunaan templat per RT, mendaftarkan wajah, lalu bisa absen dengan lokasi dan kamera. Dasbor juga menyediakan kontak privasi, permintaan warga, dan pencabutan persetujuan.
 
 ## Layanan wajah
 
@@ -28,7 +28,7 @@ Sebelum melibatkan warga, pengurus perlu mengisi kontak privasi RT, menuntaskan 
 
 | Pemeriksaan | Bukti yang perlu dicatat |
 | --- | --- |
-| Akun dan akses | Masuk melalui email di Android dan iPhone, uji pemilik dengan 2FA dan warga pada dua RT, pindahkan peran kemudian pastikan akses lama berakhir. |
+| Akun dan akses | Masuk melalui email di Android dan iPhone, uji pemilik dan warga pada dua RT, pindahkan peran kemudian pastikan akses lama berakhir. |
 | Kamera dan lokasi | Periksa setiap pos dari dalam, dekat batas, dan di luar radius. Ukur salah terima, salah tolak dan penerimaan foto/video pada sampel uji terpisah sesuai bagian 3 PRD. |
 | Aksesibilitas | Amati warga senior menyelesaikan presensi pertama tanpa bantuan, memperbesar teks, dan mencoba kembali setelah izin lokasi atau kamera ditolak. |
 | Privasi | Tetapkan kontak RT dan penyedia pemrosesan, lokasi penyimpanan, dasar pemrosesan, risiko serta mitigasi. Uji permintaan akses, koreksi, penghapusan dan penghapusan ulang setelah restore. |

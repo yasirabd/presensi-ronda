@@ -42,7 +42,7 @@ export function Introduction() {
         <details name="panduan-peran">
           <summary>Cara menyiapkan RT</summary>
           <ol>
-            <li><strong>Buat RT.</strong> Setelah masuk, pilih Daftarkan RT baru. Isi nama RT, lalu pilih Buat ruang RT. Aktifkan 2FA dengan aplikasi autentikator sebelum mengelola RT.</li>
+            <li><strong>Buat RT.</strong> Setelah masuk, pilih Daftarkan RT baru. Isi nama RT, lalu pilih Buat RT.</li>
             <li><strong>Undang warga.</strong> Di menu Undang warga, buat tautan untuk email warga dan bagikan. Setelah warga bergabung, periksa identitasnya di menu Verifikasi identitas warga.</li>
             <li><strong>Atur giliran.</strong> Simpan koordinat dan radius di Atur lokasi pos. Di Jadwalkan giliran, pilih warga, waktu jaga, dan gunakan nama pos yang sama.</li>
             <li><strong>Lihat kehadiran.</strong> Buka Rekap presensi untuk memeriksa siapa yang hadir atau mengunduh rekap CSV.</li>

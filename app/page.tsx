@@ -26,9 +26,6 @@ export default function Home() {
   const [clock,setClock]=useState(0);
   useEffect(()=>{setClock(Date.now());const timer=setInterval(()=>setClock(Date.now()),10000);return ()=>clearInterval(timer)},[]);
   const [revision,refresh] = useState(0);
-  const [factor,setFactor] = useState('');
-  const [secret,setSecret] = useState('');
-  const [verified,setVerified] = useState(false);
   const [invitation,setInvitation] = useState('');
   const [path,setPath]=useState<''|'join'|'create'>('');
   const [recovering,setRecovering]=useState(false);
@@ -52,7 +49,6 @@ export default function Home() {
       setRooms(data || []);setRoomsLoaded(true);
       setRT(old=>data?.some(r=>r.id===old)?old:data?.[0]?.id || '');
     });
-    db.auth.mfa.getAuthenticatorAssuranceLevel().then(({data})=>{if(active)setVerified(data?.currentLevel==='aal2')});
     return ()=>{active=false};
   },[session,revision]);
   useEffect(()=>{
@@ -123,22 +119,11 @@ export default function Home() {
       const {data:id,error}=await db.rpc('join_rt',{code:data.get('code')});if(error)throw error;
       setMembers([]);setShifts([]);setLink('');setRT(id);setInvitation('');setPath('');const current=new URL(location.href);current.searchParams.delete('undangan');window.history.replaceState(null,'',current);return 'Berhasil bergabung.';
     })}><label>Kode undangan<input name="code" value={invitation} onChange={e=>setInvitation(e.target.value.trim())} required/></label>{inviteName && <p>Undangan dari {inviteName}</p>}<button disabled={busy||!inviteName}>Gabung RT</button></form></details>}
-    {roomsLoaded && manager && !verified && <details open><summary>Aktifkan akses pengurus (2FA)</summary><p>Untuk mengelola RT, hubungkan aplikasi autentikator di HP Anda, lalu masukkan kode yang ditampilkan.</p>
-    <form onSubmit={submit(async()=>{
-      const {data,error}=await db.auth.mfa.listFactors();if(error)throw error;
-      if(data.totp.length){setFactor(data.totp[0].id);return 'Masukkan kode dari aplikasi autentikator.'}
-      const enrolled=await db.auth.mfa.enroll({factorType:'totp'});if(enrolled.error)throw enrolled.error;
-      setFactor(enrolled.data.id);setSecret(enrolled.data.totp.secret);return 'Tambahkan kunci ini ke aplikasi autentikator.';
-    })}>{button('Siapkan autentikator')}</form>
-    {factor && <form onSubmit={submit(async data=>{
-      const {error}=await db.auth.mfa.challengeAndVerify({factorId:factor,code:String(data.get('otp'))});if(error)throw error;
-      setSecret('');setVerified(true);return '2FA aktif.';
-    })}>{secret && <output>{secret}</output>}{field('Kode autentikator','otp')}{button('Verifikasi')}</form>}</details>}
     {roomsLoaded && (!onboarding || intent==='create') && <details open={onboarding}><summary>Daftarkan RT</summary><form onSubmit={submit(async data=>{
       const {data:id,error}=await db.rpc('create_rt',{label:data.get('label')});if(error)throw error;
-      setMembers([]);setShifts([]);setLink('');setRT(id);setPath('');return 'RT berhasil dibuat. Aktifkan 2FA untuk mengelola RT.';
-    })}>{field('Nama RT dan wilayah','label')}{button('Buat ruang RT')}</form></details>}
-    {manager && verified && <><details><summary>Verifikasi identitas warga</summary><form onSubmit={submit(async data=>{
+      setMembers([]);setShifts([]);setLink('');setRT(id);setPath('');return 'RT berhasil dibuat. Anda bisa mengundang warga sekarang.';
+    })}>{field('Nama RT dan wilayah','label')}{button('Buat RT')}</form></details>}
+    {manager && <><details><summary>Verifikasi identitas warga</summary><form onSubmit={submit(async data=>{
       const {error}=await db.rpc('allow_face_registration',{target:rt,member:data.get('member')});
       if(error)throw error;return 'Pendaftaran wajah warga diizinkan.';
     })}><label>Warga yang diperiksa langsung<select name="member">{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>{button('Konfirmasi identitas warga')}</form></details><section><h2>Undang warga</h2><form onSubmit={submit(async data=>{
@@ -163,8 +148,8 @@ export default function Home() {
       if(error)throw error;return 'Jadwal diperbarui.';
     })}><label>Giliran<select name="shift" required>{shifts.filter(s=>Date.parse(s.starts_at)>clock).map(s=><option key={s.id} value={s.id}>{s.post} · {displayTime(s.starts_at)} · {members.find(m=>m.user_id===s.user_id)?.email}</option>)}</select></label>
     <label>Anggota<select name="member" required>{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>{field('Nama pos','post')}{field('Mulai baru (waktu perangkat)','start','datetime-local')}{field('Selesai baru (waktu perangkat)','end','datetime-local')}{button('Perbarui giliran')}</form></details></section></>}
-    {manager && verified && <Attendance key={rt} db={db} rt={rt} revision={revision}/>}
-    {rt && <RTSettings key={rt} db={db} rt={rt} members={members} manager={manager && verified} isOwner={owner && verified} revision={revision} changed={()=>refresh(n=>n+1)}/>}
+    {manager && <Attendance key={rt} db={db} rt={rt} revision={revision}/>}
+    {rt && <RTSettings key={rt} db={db} rt={rt} members={members} manager={manager} isOwner={owner} revision={revision} changed={()=>refresh(n=>n+1)}/>}
     <button onClick={async()=>{const {error}=await db.auth.signOut();if(error)setNotice(error.message);else location.reload()}}>Keluar</button>
     </>;
 }
