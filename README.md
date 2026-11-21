@@ -4,9 +4,9 @@ Aplikasi SaaS presensi ronda RT menggunakan Next.js, TypeScript, Supabase Auth d
 
 ## Menjalankan lokal
 
-Gunakan Node 22 atau 24. Jalankan `npm ci`, salin `.env.example` ke `.env.local`, lalu isi URL dan publishable key proyek Supabase. Terapkan semua file SQL di `supabase/migrations` sesuai urutan nama ke database Supabase baru. Aktifkan login email dengan magic link dan MFA TOTP. Izinkan redirect ke URL aplikasi lokal di pengaturan Auth. Jalankan `npm run dev` dan buka http://localhost:3000.
+Gunakan Node 22 atau 24. Jalankan `npm ci`, salin `.env.example` ke `.env.local`, lalu isi URL dan publishable key proyek Supabase. Terapkan semua file SQL di `supabase/migrations` sesuai urutan nama ke database Supabase baru. Aktifkan pendaftaran dan login email dengan kata sandi, konfirmasi email, pemulihan kata sandi dan MFA TOTP. Izinkan redirect ke URL aplikasi lokal di pengaturan Auth. Jalankan `npm run dev` dan buka http://localhost:3000.
 
-Pemilik masuk lewat email, menyiapkan autentikator, membuat RT, dan membagikan undangan kepada alamat email warga. Setelah warga menerima undangan, pemilik dapat menetapkan pos dan waktu giliran. Warga melihat jadwal sendiri. Formulir waktu giliran memakai zona waktu perangkat pengurus. Daftar jadwal warga memakai zona waktu RT.
+Pemilik masuk dengan email dan kata sandi, menyiapkan autentikator, membuat RT, dan membagikan undangan kepada alamat email warga. Setelah warga menerima undangan, pemilik dapat menetapkan pos dan waktu giliran. Warga melihat jadwal sendiri. Formulir waktu giliran memakai zona waktu perangkat pengurus. Daftar jadwal warga memakai zona waktu RT.
 
 Periksa build dengan `npm run build` dan tipe dengan `npm run typecheck`. Sebelum pilot, uji login email, MFA, dan isolasi dua RT dengan akun terpisah. Pemilik dengan 2FA dapat mencatat presensi manual per giliran, mengoreksi dengan alasan, dan mengunduh CSV per bulan serta warga. Pengurus mengatur koordinat serta radius melalui Atur lokasi pos menggunakan nama pos sesuai jadwal. Warga memeriksa lokasi pada giliran aktif melalui HTTPS atau localhost. Pengurus mengizinkan pendaftaran wajah setelah memeriksa identitas anggota. Warga menyetujui penggunaan templat per RT, mendaftarkan wajah, lalu bisa absen dengan lokasi dan kamera. Dasbor juga menyediakan kontak privasi, permintaan warga, dan pencabutan persetujuan.
 

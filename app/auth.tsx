@@ -1,0 +1,74 @@
+'use client';
+import {useState, type FormEvent} from 'react';
+import type {SupabaseClient} from '@supabase/supabase-js';
+
+type Mode = 'login' | 'signup' | 'forgot' | 'reset';
+const titles = {login:'Masuk ke Ronda Pak', signup:'Daftar akun', forgot:'Lupa kata sandi?', reset:'Buat kata sandi baru'};
+const actions = {login:'Masuk', signup:'Daftar', forgot:'Kirim tautan pemulihan', reset:'Simpan kata sandi baru'};
+
+export function AuthForm({db, invited, recovering, onReset}:{
+  db:SupabaseClient; invited:boolean; recovering:boolean; onReset:()=>void;
+}) {
+  const [choice,setChoice]=useState<Mode>('login');
+  const mode=recovering?'reset':choice;
+  const [email,setEmail]=useState('');
+  const [password,setPassword]=useState('');
+  const [busy,setBusy]=useState(false);
+  const [message,setMessage]=useState('');
+  const [sent,setSent]=useState(false);
+  function switchTo(next:Mode) {
+    setChoice(next);setPassword('');setMessage('');setSent(false);
+  }
+  async function submit(event:FormEvent) {
+    event.preventDefault();
+    if(busy)return;
+    setBusy(true);setMessage('');
+    const address=email.trim();
+    const redirect=new URL('/',location.origin);
+    const invite=new URLSearchParams(location.search).get('undangan');
+    if(invite)redirect.searchParams.set('undangan',invite);
+    try {
+      if(mode==='forgot'){
+        redirect.searchParams.set('pemulihan','1');
+        const {error}=await db.auth.resetPasswordForEmail(address,{redirectTo:redirect.href});
+        if(error)throw error;
+        setSent(true);setMessage('Jika email terdaftar, tautan pemulihan akan dikirim ke '+address+'. Periksa juga folder spam.');
+      } else if(mode==='reset'){
+        const {error}=await db.auth.updateUser({password});
+        if(error)throw error;
+        switchTo('login');onReset();
+      } else if(mode==='signup'){
+        const {data,error}=await db.auth.signUp({email:address,password,options:{emailRedirectTo:redirect.href}});
+        if(error)throw error;
+        if(!data.session){setPassword('');setSent(true);setMessage('Periksa kotak masuk '+address+' untuk konfirmasi akun. Jika sudah punya akun, pilih Masuk.');}
+      } else {
+        const {error}=await db.auth.signInWithPassword({email:address,password});
+        if(error)throw error;
+      }
+    } catch(err) {
+      const code=(err as {code?:string}).code;
+      const errors:Record<string,string>={
+        invalid_credentials:'Email atau kata sandi belum cocok. Coba lagi atau pilih Lupa kata sandi.',
+        email_not_confirmed:'Buka email konfirmasi akun terlebih dahulu.',
+        weak_password:'Gunakan kata sandi yang lebih kuat dan coba lagi.',
+        over_email_send_rate_limit:'Tunggu sebentar sebelum meminta email lagi.',
+        same_password:'Pilih kata sandi yang berbeda dari sebelumnya.'
+      };
+      setMessage(errors[code||''] || 'Permintaan belum berhasil. Periksa koneksi dan coba lagi.');
+    } finally {setBusy(false);}
+  }
+  return <section className="auth-card"><h1>{sent?'Periksa email Anda':titles[mode]}</h1>
+    {invited && !sent && mode!=='reset' && <p>Gunakan email yang menerima undangan RT.</p>}
+    {mode==='forgot' && !sent && <p>Kami akan mengirim tautan untuk membuat kata sandi baru.</p>}
+    <p role="status">{message}</p>
+    {!sent && <form onSubmit={submit}>
+      {mode!=='reset' && <label>Alamat email<input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label>}
+      {mode!=='forgot' && <label>{mode==='reset'?'Kata sandi baru':'Kata sandi'}<input type="password" autoComplete={mode==='login'?'current-password':'new-password'} minLength={mode==='login'?undefined:8} required value={password} onChange={e=>setPassword(e.target.value)}/>
+        {mode!=='login' && <small>Gunakan minimal 8 karakter.</small>}</label>}
+      <button disabled={busy}>{busy?'Mohon tunggu…':actions[mode]}</button>
+    </form>}
+    {mode==='login' && <><button className="text-action" disabled={busy} onClick={()=>switchTo('forgot')}>Lupa kata sandi?</button>
+      <button className="secondary" disabled={busy} onClick={()=>switchTo('signup')}>Daftar akun baru</button></>}
+    {mode!=='login' && mode!=='reset' && <button className="text-action" disabled={busy} onClick={()=>switchTo('login')}>Kembali ke masuk</button>}
+  </section>;
+}

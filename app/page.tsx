@@ -4,6 +4,7 @@ import {createClient, type Session} from '@supabase/supabase-js';
 import {RTSettings} from './rt-settings';
 import {FaceRegistration} from './face';
 import {LocationCheck} from './location';
+import {AuthForm} from './auth';
 import {Attendance} from './attendance';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -29,10 +30,17 @@ export default function Home() {
   const [secret,setSecret] = useState('');
   const [verified,setVerified] = useState(false);
   const [invitation,setInvitation] = useState('');
+  const [path,setPath]=useState<''|'join'|'create'>('');
+  const [recovering,setRecovering]=useState(false);
+  const [roomsLoaded,setRoomsLoaded]=useState(false);
   const [link,setLink] = useState('');
   useEffect(()=>{
     setInvitation(new URLSearchParams(location.search).get('undangan') || '');
-    const sub=db?.auth.onAuthStateChange((_,s)=>setSession(s));
+
+    const sub=db?.auth.onAuthStateChange((event,s)=>{
+      if(event==='PASSWORD_RECOVERY')setRecovering(true);
+      setSession(s);
+    });
     return ()=>sub?.data.subscription.unsubscribe();
   },[]);
   useEffect(()=>{
@@ -41,7 +49,7 @@ export default function Home() {
     db.from('communities').select('id,name,zone').order('name').then(({data,error})=>{
       if(!active) return;
       if(error) return setNotice(error.message);
-      setRooms(data || []);
+      setRooms(data || []);setRoomsLoaded(true);
       setRT(old=>data?.some(r=>r.id===old)?old:data?.[0]?.id || '');
     });
     db.auth.mfa.getAuthenticatorAssuranceLevel().then(({data})=>{if(active)setVerified(data?.currentLevel==='aal2')});
@@ -88,19 +96,30 @@ export default function Home() {
     return <label>{label}<input required name={name} type={type} defaultValue={value}/></label>;
   }
   const button=(label:string)=><button disabled={busy}>{label}</button>;
-  return <>{!session && <img className="welcome-image" src="/ronda-malam.webp" width="1200" height="600" alt="Maskot burung hantu menemani tiga warga membahas jadwal di pos ronda pada malam hari."/>}<h1>{session?'Ruang ronda':'Presensi ronda RT'}</h1>
-    <p role="status">{notice}</p>
-    {!db ? <section><h2>Hubungkan layanan RT</h2><p>Pengelola aplikasi perlu mengatur koneksi Supabase sebelum warga bisa masuk.</p></section> :
-    !session ? <section><h2>Masuk ke Ronda Pak</h2><p>Buka tautan yang kami kirim ke email Anda untuk masuk atau membuat akun.</p><form onSubmit={submit(async data=>{
-      const {error}=await db.auth.signInWithOtp({email:String(data.get('email')),options:{emailRedirectTo:location.href.split('#')[0]}});
-      if(error)throw error;return 'Periksa email Anda untuk membuka tautan masuk.';
-    })}>{field('Alamat email','email','email')}{button('Kirim tautan masuk')}</form></section> :
-    <>
-    <details open={Boolean(invitation) || !rooms.length}><summary>Gabung melalui undangan</summary><form onSubmit={submit(async data=>{
+  if(!db)return <p>Layanan RT belum terhubung. Hubungi pengurus.</p>;
+  if(!session || recovering)return <>
+    <img className="auth-image" src="/ronda-malam.webp" width="1200" height="600" alt=""/>
+    <AuthForm db={db} invited={Boolean(invitation)} recovering={Boolean(session)&&recovering} onReset={()=>{
+      const current=new URL(location.href);current.searchParams.delete('pemulihan');current.hash='';
+      window.history.replaceState(null,'',current);setRecovering(false);setNotice('Kata sandi baru tersimpan.');
+    }}/>
+  </>;
+  const onboarding=roomsLoaded && !rooms.length;
+  const intent=invitation?'join':path;
+  return <><h1>{onboarding?'Mulai di Ronda Pak':'Ruang ronda'}</h1><p role="status">{notice}</p>
+    {onboarding && !intent && <section><h2>Apa yang ingin Anda lakukan?</h2>
+      <button onClick={()=>setPath('join')}>Gabung RT saya</button>
+      <button className="secondary" onClick={()=>setPath('create')}>Daftarkan RT baru</button>
+    </section>}
+    {onboarding && intent && <button className="text-action" onClick={()=>{
+      setInvitation('');setPath('');setNotice('');const current=new URL(location.href);
+      current.searchParams.delete('undangan');window.history.replaceState(null,'',current);
+    }}>Kembali ke pilihan RT</button>}
+    {roomsLoaded && (!onboarding || intent==='join') && <details open={Boolean(invitation) || onboarding}><summary>Gabung melalui undangan</summary><form onSubmit={submit(async data=>{
       const {data:id,error}=await db.rpc('join_rt',{code:data.get('code')});if(error)throw error;
-      setMembers([]);setShifts([]);setLink('');setRT(id);return 'Berhasil bergabung.';
-    })}><label>Kode undangan<input name="code" value={invitation} onChange={e=>setInvitation(e.target.value.trim())} required/></label>{inviteName && <p>Undangan dari {inviteName}</p>}<button disabled={busy||!inviteName}>Gabung RT</button></form></details>
-    {!verified && <details><summary>Aktifkan akses pengurus (2FA)</summary>
+      setMembers([]);setShifts([]);setLink('');setRT(id);setInvitation('');setPath('');const current=new URL(location.href);current.searchParams.delete('undangan');window.history.replaceState(null,'',current);return 'Berhasil bergabung.';
+    })}><label>Kode undangan<input name="code" value={invitation} onChange={e=>setInvitation(e.target.value.trim())} required/></label>{inviteName && <p>Undangan dari {inviteName}</p>}<button disabled={busy||!inviteName}>Gabung RT</button></form></details>}
+    {roomsLoaded && !verified && (!onboarding || intent==='create') && <details open={onboarding}><summary>Aktifkan akses pengurus (2FA)</summary><p>Untuk mengelola RT, hubungkan aplikasi autentikator di HP Anda, lalu masukkan kode yang ditampilkan.</p>
     <form onSubmit={submit(async()=>{
       const {data,error}=await db.auth.mfa.listFactors();if(error)throw error;
       if(data.totp.length){setFactor(data.totp[0].id);return 'Masukkan kode dari aplikasi autentikator.'}
@@ -111,7 +130,7 @@ export default function Home() {
       const {error}=await db.auth.mfa.challengeAndVerify({factorId:factor,code:String(data.get('otp'))});if(error)throw error;
       setSecret('');setVerified(true);return '2FA aktif.';
     })}>{secret && <output>{secret}</output>}{field('Kode autentikator','otp')}{button('Verifikasi')}</form>}</details>}
-    {verified && <details><summary>Daftarkan RT</summary><form onSubmit={submit(async data=>{
+    {roomsLoaded && verified && (!onboarding || intent==='create') && <details open={onboarding}><summary>Daftarkan RT</summary><form onSubmit={submit(async data=>{
       const {data:id,error}=await db.rpc('create_rt',{label:data.get('label')});if(error)throw error;
       setMembers([]);setShifts([]);setLink('');setRT(id);return 'Ruang kerja dibuat.';
     })}>{field('Nama RT dan wilayah','label')}{button('Buat ruang RT')}</form></details>}
@@ -147,5 +166,5 @@ export default function Home() {
     {manager && verified && <Attendance key={rt} db={db} rt={rt} revision={revision}/>}
     {rt && <RTSettings key={rt} db={db} rt={rt} members={members} manager={manager && verified} isOwner={owner && verified} revision={revision} changed={()=>refresh(n=>n+1)}/>}
     <button onClick={async()=>{const {error}=await db.auth.signOut();if(error)setNotice(error.message);else location.reload()}}>Keluar</button>
-    </>}</>;
+    </>;
 }
