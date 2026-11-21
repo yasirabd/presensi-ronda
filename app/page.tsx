@@ -88,10 +88,10 @@ export default function Home() {
     return <label>{label}<input required name={name} type={type} defaultValue={value}/></label>;
   }
   const button=(label:string)=><button disabled={busy}>{label}</button>;
-  return <>{!session && <img className="welcome-image" src="/ronda-malam.webp" width="1100" height="619" alt="Warga mencatat giliran dan bersiap berpatroli di pos ronda pada malam hari."/>}<h1>{session?'Ruang ronda':'Presensi ronda RT'}</h1>
+  return <>{!session && <img className="welcome-image" src="/ronda-malam.webp" width="1200" height="600" alt="Maskot burung hantu menemani tiga warga membahas jadwal di pos ronda pada malam hari."/>}<h1>{session?'Ruang ronda':'Presensi ronda RT'}</h1>
     <p role="status">{notice}</p>
     {!db ? <section><h2>Hubungkan layanan RT</h2><p>Pengelola aplikasi perlu mengatur koneksi Supabase sebelum warga bisa masuk.</p></section> :
-    !session ? <section><h2>Masuk ke RondaHadir</h2><p>Buka tautan yang kami kirim ke email Anda untuk masuk atau membuat akun.</p><form onSubmit={submit(async data=>{
+    !session ? <section><h2>Masuk ke Ronda Pak</h2><p>Buka tautan yang kami kirim ke email Anda untuk masuk atau membuat akun.</p><form onSubmit={submit(async data=>{
       const {error}=await db.auth.signInWithOtp({email:String(data.get('email')),options:{emailRedirectTo:location.href.split('#')[0]}});
       if(error)throw error;return 'Periksa email Anda untuk membuka tautan masuk.';
     })}>{field('Alamat email','email','email')}{button('Kirim tautan masuk')}</form></section> :

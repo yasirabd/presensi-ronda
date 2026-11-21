@@ -1,4 +1,4 @@
-# PRD SaaS Presensi Ronda RT
+# Ronda Pak — PRD SaaS Presensi Ronda RT
 
 ## 1. Ringkasan Eksekutif
 
@@ -50,8 +50,8 @@ Antarmuka warga mengutamakan satu tindakan utama per layar. Nama RT dan wilayah 
 
 | Fondasi | Spesifikasi awal |
 | --- | --- |
-| Warna | Token CSS semantik `background` (#F8FAFC), `surface` (#FFFFFF), `foreground` (#0F172A), `muted-foreground` (#475569), `primary` (#1D4ED8), `success` (#166534), `warning` (#854D0E), dan `destructive` (#B91C1C). Gunakan teks putih pada tombol utama dan token status sebagai teks pada permukaan terang. Ukur ulang semua pasangan saat komponen dirender. |
-| Tipografi | Gunakan font sistem dalam satu keluarga sans-serif. Teks isi, label tombol warga, dan masukan mulai dari 18 px, tinggi baris 1,5. Judul utama 28 px dengan bobot 700. Gunakan satuan relatif agar teks mengikuti pengaturan pembesaran pengguna. |
+| Warna | Hijau hutan (#15370D) untuk teks dan tombol utama, krem (#FFF2B4) untuk teks tombol, sage (#728E6D) untuk batas kontrol, dan emas (#E5CD82) untuk aksen. Kartu berwarna putih di atas latar netral terang. |
+| Tipografi | Geist Sans dimuat dari aplikasi dengan cadangan sans-serif sistem. Teks isi, tombol dan masukan mulai dari 18 px dengan tinggi baris 1,55. Judul responsif dan satuan relatif mengikuti pembesaran teks pengguna. |
 | Tata letak | Skala jarak 4, 8, 12, 16, 24, dan 32 px. Margin awal 16 px di HP dan setiap target sentuh minimal 48 × 48 px. Tombol utama selebar kontainer pada layar sempit. |
 | Fokus dan kontras | Teks biasa minimal 4,5:1. Indikator fokus dan batas kontrol yang diperlukan minimal 3:1 terhadap warna di sekitarnya. Gunakan kontrol HTML semantik dan pastikan fokus terlihat serta tidak tertutup saat halaman digulir. |
 | Gerak | Beri respons tekan segera. Bila perlu, gunakan transisi 120–180 ms untuk perubahan visual. Hormati `prefers-reduced-motion` dan tampilkan status proses dengan teks. |

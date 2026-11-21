@@ -1,4 +1,4 @@
-# RondaHadir
+# Ronda Pak
 
 Aplikasi SaaS presensi ronda RT menggunakan Next.js, TypeScript, Supabase Auth dan Postgres.
 

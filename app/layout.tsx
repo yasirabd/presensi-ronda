@@ -1,6 +1,16 @@
 import type { ReactNode } from 'react';
+import { GeistSans } from 'geist/font/sans';
 import './styles.css';
-export const metadata = { title: 'RondaHadir · Presensi ronda RT' };
-export default function Layout({children}:{children:ReactNode}) {
-  return <html lang="id"><body><header><img src="/rondahadir.webp" width="174" height="50" alt="RondaHadir"/></header><main>{children}</main></body></html>;
+
+export const metadata = { title: 'Ronda Pak · Presensi ronda RT' };
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="id" className={GeistSans.variable}>
+      <body>
+        <header>Ronda Pak</header>
+        <main>{children}</main>
+      </body>
+    </html>
+  );
 }
