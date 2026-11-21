@@ -1,5 +1,7 @@
 'use client';
 import {useEffect, useState, type FormEvent} from 'react';
+import {usePathname} from 'next/navigation';
+import {Introduction} from './introduction';
 import type {SupabaseClient} from '@supabase/supabase-js';
 
 type Mode = 'login' | 'signup' | 'forgot' | 'reset';
@@ -9,7 +11,9 @@ const actions = {login:'Masuk', signup:'Daftar', forgot:'Kirim tautan pemulihan'
 export function AuthForm({db, invited, recovering, onReset}:{
   db:SupabaseClient; invited:boolean; recovering:boolean; onReset:()=>void;
 }) {
-  const [choice,setChoice]=useState<Mode>('login');
+  const pathname=usePathname();
+  const [choice,setChoice]=useState<Mode>(pathname==='/daftar'?'signup':'login');
+  const [authLink,setAuthLink]=useState(false);
   const mode=recovering?'reset':choice;
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
@@ -25,6 +29,8 @@ export function AuthForm({db, invited, recovering, onReset}:{
       if(!controller.signal.aborted)setGoogleEnabled(settings?.external?.google===true);
     }).catch(()=>{});
     const params=new URLSearchParams(location.hash.slice(1));
+    const query=new URLSearchParams(location.search);
+    setAuthLink(['undangan','pemulihan','code','error'].some(k=>query.has(k)) || ['access_token','error','type'].some(k=>params.has(k)));
     if(params.has('error') || new URLSearchParams(location.search).has('error')){
       setMessage('Proses masuk belum selesai. Silakan coba lagi.');
     }
@@ -86,6 +92,7 @@ export function AuthForm({db, invited, recovering, onReset}:{
       setMessage(errors[code||''] || 'Permintaan belum berhasil. Periksa koneksi dan coba lagi.');
     } finally {setBusy(false);}
   }
+  if(pathname==='/' && !invited && !recovering && !authLink)return <Introduction/>;
   return <div className="auth-layout"><aside className="auth-art" aria-label="Ilustrasi ronda malam">
     <div className="art-heading">Presensi<br/>ronda RT<span aria-hidden="true">.</span></div>
     <img src="/ronda-malam.webp" width="1200" height="600" alt="Burung hantu menemani warga di pos ronda."/>

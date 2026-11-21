@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { GeistSans } from 'geist/font/sans';
+import '@fontsource/nunito/latin-900.css';
 import './styles.css';
 
 export const metadata = { title: 'Ronda Pak · Presensi ronda RT' };
