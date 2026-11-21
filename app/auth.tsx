@@ -4,9 +4,9 @@ import {usePathname} from 'next/navigation';
 import {Introduction} from './introduction';
 import type {SupabaseClient} from '@supabase/supabase-js';
 
-type Mode = 'login' | 'signup' | 'forgot' | 'reset';
-const titles = {login:'Masuk ke Ronda Pak', signup:'Daftar akun', forgot:'Lupa kata sandi?', reset:'Buat kata sandi baru'};
-const actions = {login:'Masuk', signup:'Daftar', forgot:'Kirim tautan pemulihan', reset:'Simpan kata sandi baru'};
+type Mode = 'login' | 'signup' | 'forgot' | 'reset' | 'resend';
+const titles = {login:'Masuk ke Ronda Pak', signup:'Daftar akun', forgot:'Lupa kata sandi?', reset:'Buat kata sandi baru', resend:'Kirim ulang konfirmasi'};
+const actions = {login:'Masuk', signup:'Daftar', forgot:'Kirim tautan pemulihan', reset:'Simpan kata sandi baru', resend:'Kirim ulang email'};
 
 export function AuthForm({db, invited, recovering, onReset}:{
   db:SupabaseClient; invited:boolean; recovering:boolean; onReset:()=>void;
@@ -63,7 +63,12 @@ export function AuthForm({db, invited, recovering, onReset}:{
     const address=email.trim();
     const redirect=returnUrl();
     try {
-      if(mode==='forgot'){
+      if(mode==='resend'){
+        const {error}=await db.auth.resend({type:'signup',email:address,options:{emailRedirectTo:redirect.href}});
+        if(error)throw error;
+        setSent(true);
+        setMessage('Jika akun masih menunggu konfirmasi, tautan akan dikirim ke '+address+'. Periksa kotak masuk dan folder Spam.');
+      } else if(mode==='forgot'){
         redirect.searchParams.set('pemulihan','1');
         const {error}=await db.auth.resetPasswordForEmail(address,{redirectTo:redirect.href});
         if(error)throw error;
@@ -84,9 +89,9 @@ export function AuthForm({db, invited, recovering, onReset}:{
       const code=(err as {code?:string}).code;
       const errors:Record<string,string>={
         invalid_credentials:'Email atau kata sandi belum cocok. Coba lagi atau pilih Lupa kata sandi.',
-        email_not_confirmed:'Buka email konfirmasi akun terlebih dahulu.',
+        email_not_confirmed:'Konfirmasi email untuk melanjutkan. Jika tautan belum tiba atau kedaluwarsa, pilih Kirim ulang konfirmasi.',
         weak_password:'Gunakan kata sandi yang lebih kuat dan coba lagi.',
-        over_email_send_rate_limit:'Tunggu sebentar sebelum meminta email lagi.',
+        over_email_send_rate_limit:'Batas pengiriman email tercapai. Tunggu hingga kuota tersedia, lalu pilih Kirim ulang konfirmasi jika Anda sedang mendaftar.',
         same_password:'Pilih kata sandi yang berbeda dari sebelumnya.'
       };
       setMessage(errors[code||''] || 'Permintaan belum berhasil. Periksa koneksi dan coba lagi.');
@@ -106,10 +111,11 @@ export function AuthForm({db, invited, recovering, onReset}:{
     </>}
     {!sent && <form onSubmit={submit}>
       {mode!=='reset' && <label>Alamat email<input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label>}
-      {mode!=='forgot' && <label>{mode==='reset'?'Kata sandi baru':'Kata sandi'}<input type="password" autoComplete={mode==='login'?'current-password':'new-password'} minLength={mode==='login'?undefined:8} required value={password} onChange={e=>setPassword(e.target.value)}/>
+      {mode!=='forgot' && mode!=='resend' && <label>{mode==='reset'?'Kata sandi baru':'Kata sandi'}<input type="password" autoComplete={mode==='login'?'current-password':'new-password'} minLength={mode==='login'?undefined:8} required value={password} onChange={e=>setPassword(e.target.value)}/>
         {mode!=='login' && <small>Gunakan minimal 8 karakter.</small>}</label>}
       <button disabled={busy}>{busy?'Mohon tunggu…':actions[mode]}</button>
     </form>}
+    {(mode==='login'||mode==='signup'||(mode==='resend' && sent)) && <button className="text-action" disabled={busy} onClick={()=>switchTo('resend')}>Kirim ulang konfirmasi</button>}
     {mode==='login' && <><button className="text-action" disabled={busy} onClick={()=>switchTo('forgot')}>Lupa kata sandi?</button>
       <button className="signup-action" disabled={busy} onClick={()=>switchTo('signup')}>Daftar akun baru</button></>}
     {mode!=='login' && mode!=='reset' && <button className="text-action" disabled={busy} onClick={()=>switchTo('login')}>Kembali ke halaman masuk</button>}
