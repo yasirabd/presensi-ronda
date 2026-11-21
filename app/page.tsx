@@ -166,15 +166,15 @@ export default function Home() {
       </div>
       <p role="status" className="manager-notice">{notice}</p>
       <div hidden={managerSection!=='jadwal'}>
-    <section><h2>Jadwalkan giliran</h2><form onSubmit={submit(async data=>{
+        <section><h2>Jadwalkan giliran</h2><form onSubmit={submit(async data=>{
       const {error}=await db.from('shifts').insert({rt_id:rt,user_id:data.get('member'),post:data.get('post'),starts_at:new Date(String(data.get('start'))).toISOString(),ends_at:new Date(String(data.get('end'))).toISOString()});
       if(error)throw error;return 'Jadwal tersimpan.';
-    })}><label>Anggota<select name="member" required>{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>{field('Pos ronda','post')}{field('Mulai (waktu perangkat)','start','datetime-local')}{field('Selesai (waktu perangkat)','end','datetime-local')}{button('Simpan jadwal')}</form>
-    <details><summary>Ubah giliran mendatang</summary><form onSubmit={submit(async f=>{
+    })}><label>Anggota<select name="member" required>{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>{field('Pos ronda','post')}<div className="manager-fields">{field('Mulai (waktu perangkat)','start','datetime-local')}{field('Selesai (waktu perangkat)','end','datetime-local')}</div>{button('Simpan jadwal')}</form>
+        <details><summary>Ubah giliran mendatang</summary><form onSubmit={submit(async f=>{
       const {error}=await db.rpc('revise_shift',{target:rt,shift_key:f.get('shift'),member:f.get('member'),pos:f.get('post'),start_time:new Date(String(f.get('start'))).toISOString(),end_time:new Date(String(f.get('end'))).toISOString()});
       if(error)throw error;return 'Jadwal diperbarui.';
     })}><label>Giliran<select name="shift" required>{shifts.filter(s=>Date.parse(s.starts_at)>clock).map(s=><option key={s.id} value={s.id}>{s.post} · {displayTime(s.starts_at)} · {members.find(m=>m.user_id===s.user_id)?.email}</option>)}</select></label>
-    <label>Anggota<select name="member" required>{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>{field('Nama pos','post')}{field('Mulai baru (waktu perangkat)','start','datetime-local')}{field('Selesai baru (waktu perangkat)','end','datetime-local')}{button('Perbarui giliran')}</form></details></section>
+        <label>Anggota<select name="member" required>{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>{field('Nama pos','post')}<div className="manager-fields">{field('Mulai baru (waktu perangkat)','start','datetime-local')}{field('Selesai baru (waktu perangkat)','end','datetime-local')}</div>{button('Perbarui giliran')}</form></details></section>
         <section className="schedule-panel">
           <h2>Giliran aktif dan mendatang</h2>
           <small>Zona waktu {zone}</small>
@@ -189,7 +189,7 @@ export default function Home() {
         {personalSchedule}
       </div>
       <div hidden={managerSection!=='warga'}>
-    <details><summary>Verifikasi identitas warga</summary><form onSubmit={submit(async data=>{
+        <details><summary>Verifikasi identitas warga</summary><form onSubmit={submit(async data=>{
       const {error}=await db.rpc('allow_face_registration',{target:rt,member:data.get('member')});
       if(error)throw error;return 'Pendaftaran wajah warga diizinkan.';
     })}><label>Warga yang diperiksa langsung<select name="member">{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>{button('Konfirmasi identitas warga')}</form></details><section><h2>Undang warga</h2><form onSubmit={submit(async data=>{
@@ -198,15 +198,15 @@ export default function Home() {
     })}>{field('Email warga','email','email')}{button('Buat undangan')}{link && <output>{link}</output>}</form></section>
       </div>
       <div hidden={managerSection!=='pos'}>
-    <section key={rt}><h2>Atur lokasi pos</h2><form onSubmit={submit(async data=>{
+        <section key={rt}><h2>Atur lokasi pos</h2><form onSubmit={submit(async data=>{
       const {error}=await db.from('post_locations').upsert({rt_id:rt,post:String(data.get('post')),latitude:Number(data.get('latitude')),longitude:Number(data.get('longitude')),radius_m:Number(data.get('radius'))});
       if(error)throw error;return 'Lokasi pos tersimpan.';
     })}><label>Nama pos sesuai jadwal<input list="nama-pos" name="post" required maxLength={120}/></label>
-    <datalist id="nama-pos">{Array.from(new Set(shifts.map(s=>s.post))).map(post=><option key={post} value={post}/>)}</datalist>
-    <label>Lintang<input type="number" name="latitude" step="any" min="-90" max="90" required/></label>
-    <label>Bujur<input type="number" name="longitude" step="any" min="-180" max="180" required/></label>
-    <label>Radius dalam meter<input type="number" name="radius" min="10" max="500" defaultValue="75" required/></label>
-    {button('Simpan lokasi pos')}</form></section>
+        <datalist id="nama-pos">{Array.from(new Set(shifts.map(s=>s.post))).map(post=><option key={post} value={post}/>)}</datalist>
+        <label>Lintang<input type="number" name="latitude" step="any" min="-90" max="90" required/></label>
+        <label>Bujur<input type="number" name="longitude" step="any" min="-180" max="180" required/></label>
+        <label>Radius dalam meter<input type="number" name="radius" min="10" max="500" defaultValue="75" required/></label>
+        {button('Simpan lokasi pos')}</form></section>
       </div>
       <div hidden={managerSection!=='rekap'}>
         <Attendance key={rt} db={db} rt={rt} revision={revision}/>
