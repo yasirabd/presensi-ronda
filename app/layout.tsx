@@ -8,7 +8,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="id" className={GeistSans.variable}>
       <body>
-        <header>Ronda Pak</header>
+        <header><img src="/ronda-pak-owl.png" width="40" height="40" alt="" />Ronda Pak</header>
         <main>{children}</main>
       </body>
     </html>

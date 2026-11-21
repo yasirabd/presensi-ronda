@@ -52,7 +52,6 @@ output, time, input[type=number] { font-variant-numeric: tabular-nums; }
 button.secondary { background: white; color: var(--forest); margin-top: .75rem; }
 button.text-action { background: transparent; color: var(--forest); border: 0; text-decoration: underline; }
 header { display: flex; align-items: center; gap: .55rem; }
-header::before { content: ""; width: 1.8rem; aspect-ratio: 1; border-radius: 50%; background: var(--forest); box-shadow: inset .55rem -.2rem var(--gold); }
 main:has(.auth-layout) { max-width: 74rem; }
 .auth-layout { display: grid; align-items: center; max-width: 32rem; margin: auto; gap: 1.5rem; }
 .auth-art { background: var(--cream); color: var(--forest); border-radius: 1.6rem; overflow: hidden; display: grid; }
