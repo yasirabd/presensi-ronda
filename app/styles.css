@@ -102,5 +102,13 @@ main:has(.intro) { max-width: 75rem; }
 @media (min-width: 760px) {
   .intro { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
   .intro figure { margin: 0; }
-  .intro-roles { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; padding: 2rem; gap: 3rem; }
 }
+
+button.guide-trigger { width: auto; margin-top: .5rem; padding-inline: 0; border: 0; background: transparent; color: var(--forest); text-decoration: underline; text-underline-offset: .2em; }
+.welcome-guide { width: min(32rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; overscroll-behavior: contain; padding: clamp(1rem, 4vw, 2rem); color: var(--forest); background: var(--paper); border: 1px solid var(--sage); border-radius: 1.5rem; }
+.welcome-guide::backdrop { background: rgb(20 38 22 / .48); }
+.welcome-guide > img { width: 56px; height: 56px; }
+.welcome-guide h2 { margin-block: .5rem; font-size: clamp(1.6rem, 5vw, 2rem); }
+.welcome-guide p { margin-block: .5rem 1rem; }
+.welcome-guide .intro-roles { gap: .25rem; padding: .5rem 1rem; margin-bottom: 1rem; }
+.welcome-guide a { display: flex; justify-content: center; align-items: center; min-height: 48px; color: inherit; }
