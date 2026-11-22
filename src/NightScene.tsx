@@ -4,7 +4,7 @@ import { AccessibilityInfo, Animated, AppState, Easing, Platform, Pressable, Scr
 import { useAudioPlayer } from 'expo-audio';
 import { Link, usePathname, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient, RadialGradient, Path, Rect, Stop } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { create } from 'zustand';
 
@@ -45,8 +45,8 @@ function useSceneMotion() {
   return {visible: active && focused, running: active && focused && !reduced && !paused, paused, toggle, reduced};
 }
 
-function OwlSound({visible}: {visible:boolean}) {
-  const player = useAudioPlayer(require('../assets/owl-night.mp3'));
+function VillageSound({visible}: {visible:boolean}) {
+  const player = useAudioPlayer(require('../assets/village-ambience.mp3'));
   const [enabled,setEnabled] = useState(false);
   useEffect(() => {
     if (!visible) {
@@ -64,7 +64,7 @@ function OwlSound({visible}: {visible:boolean}) {
     setEnabled(!enabled);
   }
   return <Pressable accessibilityRole="switch" aria-checked={enabled} accessibilityState={{checked:enabled}}
-    accessibilityLabel="Suara burung hantu" onPress={toggleSound} style={[styles.control,{paddingHorizontal:12,minWidth:44}]}>
+    accessibilityLabel="Suara desa malam: burung hantu, angin, dan air" onPress={toggleSound} style={[styles.control,{paddingHorizontal:12,minWidth:44}]}>
     <Ionicons name={enabled?'volume-medium':'volume-mute'} size={19} color="white"/>
   </Pressable>;
 }
@@ -78,15 +78,15 @@ function Irrigation({running}: {running:boolean}) {
     loop.start();
     return () => loop.stop();
   }, [flow,running]);
-  const opacity = flow.interpolate({inputRange:[0,.2,.7,1],outputRange:[0,.78,.5,0]});
+  const opacity = flow.interpolate({inputRange:[0,.2,.7,1],outputRange:[.12,1,.82,.12]});
   return <>
-    <Animated.View style={{position:'absolute',left:'22.3%',top:'91.7%',width:'1.1%',height:'3%',
+    <Animated.View style={{position:'absolute',left:'21.8%',top:'89.6%',width:'1.7%',height:'7.3%',
       opacity,transform:[{translateY:flow.interpolate({inputRange:[0,1],outputRange:[0,6]})}]}}>
       <Svg width="100%" height="100%" viewBox="0 0 12 36" preserveAspectRatio="none">
-        <Path d="M2 1q4 8 5 17m1 6 2 8" stroke="#d4f1f4" fill="none" strokeWidth="1.7"/>
+        <Path d="M2 1q4 8 5 17m1 6 2 8" stroke="#d4f1f4" fill="none" strokeWidth="2.7"/>
       </Svg>
     </Animated.View>
-    <Animated.View style={{position:'absolute',left:'20.9%',top:'96.4%',width:'5.4%',height:'1.5%',
+    <Animated.View style={{position:'absolute',left:'18.9%',top:'96.1%',width:'8%',height:'2%',
       borderRadius:100,borderWidth:1,borderColor:'#c4e5e9',opacity,
       transform:[{scale:flow.interpolate({inputRange:[0,1],outputRange:[.3,1.3]})}]}}/>
   </>;
@@ -106,7 +106,7 @@ function SkyDrift({running}: {running:boolean}) {
     opacity:drift.interpolate({inputRange:[0,.12,.78,1],outputRange:[0,.64,.5,0]}),
     transform:[{translateX:drift.interpolate({inputRange:[0,1],outputRange:[-16,28]})}],
   }]}>
-    <Svg width="100%" height="100%" viewBox="0 0 600 400">
+    <Svg width="100%" height="100%" viewBox="0 0 600 400" preserveAspectRatio="none">
       <Path d="M370 63q14-2 22-6 9-5 16-2 10-11 23-4 6 4 12 3 10-3 24 1-19 0-33 5-9 3-22 1-18 0-42 2Z" fill="#9bb5cf"/>
       <Path d="M334 76q14-2 23-6 6-2 14-1 11-4 25-2-12 2-24 6-17-1-38 3Z" fill="#879dba"/>
     </Svg>
@@ -116,10 +116,10 @@ function SkyDrift({running}: {running:boolean}) {
 function Landscape({width,height,wide,camera,wind,running,terrace}: {
   width:number; height:number; wide:boolean; running:boolean; terrace:boolean; camera:Animated.Value; wind:Animated.Value;
 }) {
-  const w=Math.max(width,height*1.5), h=w/1.5;
+  const w=width, h=wide?height:w/1.5;
   const anchorX=.66, anchorY=.51;
-  const left=Math.max(width-w,Math.min(0,width*(wide?.67:.53)-w*anchorX));
-  const top=Math.max(height-h,Math.min(0,height*.48-h*anchorY));
+  const left=0;
+  const top=height-h;
   const zoom=wide?1.62:1.85;
   const approachY=wide?anchorY:.22;
   const cameraLayer=(depth:number)=>{
@@ -146,13 +146,25 @@ function Landscape({width,height,wide,camera,wind,running,terrace}: {
           opacity:wind.interpolate({inputRange:[0,.25,.6,1],outputRange:[0,.78,.48,0]}),
           transform:[{translateY:wind.interpolate({inputRange:[0,1],outputRange:[0,-h*.013]})}],
         }]}>
-          <Svg width="100%" height="100%" viewBox="0 0 1536 1024">
+          <Svg width="100%" height="100%" viewBox="0 0 1536 1024" preserveAspectRatio="none">
             <Path d="M951 646q-4-6 0-12t-1-10m8 21q4-5 1-10" stroke="#ffefd7" strokeWidth="2.6" strokeLinecap="round" fill="none"/>
           </Svg>
         </Animated.View>}
-        <Animated.View style={[StyleSheet.absoluteFill,{opacity:wind.interpolate({inputRange:[0,.3,.62,1],outputRange:[.16,.75,.24,.16]})}]}>
-          <Svg width="100%" height="100%" viewBox="0 0 600 400">
-            {[[105,48],[149,31],[202,86],[246,32],[375,58],[411,27],[487,77]].map(([x,y])=><Circle key={x} cx={x} cy={y} r=".8" fill="#f4ebd7"/>)}
+        {[[[100,44],[215,47],[414,29]],[[170,72],[229,21],[401,61]]].map((stars,group)=>
+          <Animated.View key={group} style={[StyleSheet.absoluteFill,{
+            opacity:wind.interpolate({inputRange:[0,.24,.57,.8,1],outputRange:group?[.95,.25,.1,.6,.95]:[.18,1,.35,.12,.18]}),
+          }]}>
+            <Svg width="100%" height="100%" viewBox="0 0 600 400" preserveAspectRatio="none">
+              {stars.map(([x,y])=><Path key={x} d={`M${x} ${y-4}l1 3 3 1-3 1-1 3-1-3-3-1 3-1z`} fill="#fff1ca"/>)}
+            </Svg>
+          </Animated.View>)}
+        <Animated.View style={[StyleSheet.absoluteFill,{opacity:wind.interpolate({
+          inputRange:[0,.28,.54,.72,1],outputRange:[.24,.7,.33,.51,.24],
+        })}]}>
+          <Svg width="100%" height="100%" viewBox="0 0 600 400" preserveAspectRatio="none">
+            <Defs><RadialGradient id="lamp"><Stop offset="0" stopColor="#ffda84"/>
+              <Stop offset="1" stopColor="#ffbf62" stopOpacity="0"/></RadialGradient></Defs>
+            <Circle cx="404" cy="213" r="15" fill="url(#lamp)"/>
           </Svg>
         </Animated.View>
       </Animated.View>
@@ -212,7 +224,7 @@ export function VillageStage({children,terrace=false,actions}:StageProps) {
   const blockMotion=useRef(paused || reduced);
   blockMotion.current=paused || (Platform.OS==='web' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false);
   const stageHeight=wide?Math.max(570,Math.min(height,900)):Math.max(460,Math.min(height*.78,675));
-  const imageHeight=wide?stageHeight:safe.top+Math.min(stageHeight*.78,width*.89+52);
+  const imageHeight=wide?stageHeight:safe.top+64+width/1.5;
   useEffect(()=>{
     if(!running)return;
     const loop=Animated.loop(Animated.timing(wind,{toValue:1,duration:4900,easing:Easing.linear,useNativeDriver:driver,isInteraction:false}));
@@ -264,10 +276,10 @@ export function VillageStage({children,terrace=false,actions}:StageProps) {
         <Svg width="100%" height="100%">
           <Defs>
             <LinearGradient id="shade" x1="0%" y1="0%" x2="0%" y2="100%">
-              <Stop offset="0" stopColor={nightGround} stopOpacity=".74"/>
-              <Stop offset=".2" stopColor={nightGround} stopOpacity=".04"/>
+              <Stop offset={wide?"0":String((imageHeight-width/1.5)/imageHeight)} stopColor={nightGround} stopOpacity={wide?".74":"1"}/>
+              <Stop offset={wide?".2":String(1-width/1.5/imageHeight*.91)} stopColor={nightGround} stopOpacity=".04"/>
               <Stop offset={wide?'.72':'.55'} stopColor={nightGround} stopOpacity="0"/>
-              <Stop offset=".86" stopColor={nightGround} stopOpacity=".48"/>
+              <Stop offset=".97" stopColor={nightGround} stopOpacity=".12"/>
               <Stop offset="1" stopColor={nightGround} stopOpacity="1"/>
             </LinearGradient>
             <LinearGradient id="copyShade" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -284,13 +296,13 @@ export function VillageStage({children,terrace=false,actions}:StageProps) {
     <View style={[styles.header,{paddingTop:safe.top+12,paddingLeft:safe.left+(wide?48:18),paddingRight:safe.right+(wide?48:18)}]}>
       {terrace ? <Link href="/" dismissTo asChild><Pressable accessibilityRole="link" accessibilityLabel="Kembali ke beranda Ronda Pak"
         onPress={home} style={{...styles.brand,minHeight:44}}>{brand}</Pressable></Link> : <View style={styles.brand}>{brand}</View>}
-      <View style={{flexDirection:'row',gap:4}}><OwlSound visible={visible}/>
+      <View style={{flexDirection:'row',gap:4}}><VillageSound visible={visible}/>
       {!reduced && <Pressable accessibilityLabel={paused?'Putar animasi':'Jeda animasi'} accessibilityRole="button" onPress={toggle} style={styles.control}>
         <Ionicons name={paused?'play':'pause'} size={15} color="white"/><Text style={[type.label,{color:'white'}]}>{paused?'Putar':'Jeda'}</Text>
       </Pressable>}</View>
     </View>
     <View style={{minHeight:stageHeight-74,justifyContent:wide?'center':'flex-end',
-      paddingTop:wide?24:imageHeight*(terrace?.69:.62),paddingBottom:wide?48:24,
+      paddingTop:wide?24:imageHeight-64+12,paddingBottom:wide?48:24,
       paddingLeft:safe.left+(wide?Math.min(88,width*.065):16),paddingRight:safe.right+16}}>
       <Animated.View style={{width:'100%',maxWidth:wide?(terrace?410:440):540,
         opacity:terrace?camera.interpolate({inputRange:[0,1],outputRange:[.86,1]}):1}}>
