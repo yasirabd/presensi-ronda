@@ -24,6 +24,8 @@ assert.deepEqual((await db.query('select region from public.communities where id
 await assert.rejects(db.query('select public.save_rt_region($1,$2)',[rt,{...region,regency:{id:'32.01',name:'Lain'}}]));
 await db.query('select public.save_resident_profile($1,$2,$3,$4)',[rt,a,'Nama Pengurus','Alamat Pengurus']);
 const invite=(await db.query("select public.invite_resident($1,'b@example.org') token",[rt])).rows[0].token;
+assert.equal((await db.query("select public.invite_resident($1,' B@EXAMPLE.ORG ') token",[rt])).rows[0].token,invite);
+await assert.rejects(db.query("select public.invite_resident($1,'alamat keliru')",[rt]));
 await login(b,'b@example.org','aal1');
 assert.equal((await db.query('select * from public.communities')).rows.length,0);
 await db.query('select public.join_rt($1)',[invite]);
@@ -39,6 +41,7 @@ await login(null,null,'aal1');
 await assert.rejects(db.query("select public.create_rt('RT C')"));
 console.log('Migration, tenant visibility, invite redemption, reuse rejection and role checks passed.');
 await login(a,'a@example.org','aal1');
+await assert.rejects(db.query("select public.invite_resident($1,'b@example.org')",[rt]),/sudah bergabung/);
 const shift=(await db.query("insert into public.shifts(rt_id,user_id,post,starts_at,ends_at) values($1,$2,'Pos A',now()-interval '3 hours',now()-interval '1 hour') returning id",[rt,b])).rows[0].id;
 const record=(present,why,prev)=>db.query('select public.record_attendance($1,$2,$3,$4,$5)',[rt,shift,present,why,prev]);
 const report=async()=>(await db.query("select public.attendance_report($1,now()-interval '1 day',now()) rows",[rt])).rows[0].rows;

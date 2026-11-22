@@ -198,3 +198,15 @@ textarea {
   .resident-table .resident-expanded { display: none; }
   .resident-table th, .resident-table td { padding: .5rem .35rem; }
 }
+
+.invitation-heading, .invitation-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem; }
+.invitation-heading { justify-content: space-between; margin-block-end: .75rem; }
+.invitation-heading h2 { margin: 0; }
+.invitation-heading button, .invitation-actions button { width: auto; margin: 0; }
+.invitation-panel details { margin-block: .75rem 0; }
+.invitation-share { margin-block: 1rem; padding: 1rem; border-radius: .75rem; background: var(--workspace-bg); }
+.invitation-share h3 { margin-block: 0 .5rem; scroll-margin-top: 5rem; }
+.invitation-actions { margin-block-start: .5rem; }
+.invitation-actions a { display: inline-flex; align-items: center; min-height: 48px; color: var(--workspace-accent); font-weight: 650; }
+.invitation-list { margin: 0; padding: 0; list-style: none; }
+.invitation-list li + li { border-block-start: 1px solid var(--workspace-border); padding-block-start: .75rem; }

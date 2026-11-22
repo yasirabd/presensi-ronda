@@ -43,7 +43,7 @@ export function Introduction() {
           <summary>Cara menyiapkan RT</summary>
           <ol>
             <li><strong>Buat RT.</strong> Setelah masuk, pilih Daftarkan RT baru. Isi nomor RT, RW, dan pilih wilayah, lalu pilih Buat RT.</li>
-            <li><strong>Undang warga.</strong> Di menu Undang warga, buat tautan untuk email warga dan bagikan. Setelah warga bergabung, periksa identitasnya di menu Verifikasi identitas warga.</li>
+            <li><strong>Undang warga.</strong> Di menu Undang warga, buat tautan untuk email warga dan bagikan lewat chat pribadi WhatsApp. Setelah warga bergabung, periksa identitasnya di menu Verifikasi identitas warga.</li>
             <li><strong>Atur lokasi pos.</strong> Saat berada di pos ronda, buka Pengaturan RT dan pilih Gunakan lokasi sekarang, lalu simpan. Nama pos mengikuti nama RT.</li>
             <li><strong>Lihat kehadiran.</strong> Buka Rekap presensi untuk memeriksa siapa yang hadir atau mengunduh rekap CSV.</li>
           </ol>

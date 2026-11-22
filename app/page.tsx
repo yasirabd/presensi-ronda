@@ -8,6 +8,7 @@ import {AuthForm} from './auth';
 import {PostLocation} from './post-location';
 import {ResidentProfileForm, ResidentTable, type Member} from './residents';
 import {RegionFields, regionFromForm, type Region} from './region-fields';
+import {Invitations} from './invitations';
 import {Attendance} from './attendance';
 import {ManagerNavigation, managerSections, type ManagerSection} from './manager-navigation';
 
@@ -29,7 +30,6 @@ export default function Home() {
   const [path,setPath]=useState<''|'join'|'create'>('');
   const [recovering,setRecovering]=useState(false);
   const [roomsLoaded,setRoomsLoaded]=useState(false);
-  const [link,setLink] = useState('');
   const [managerSection,setManagerSection] = useState<ManagerSection>('warga');
   const [personalOpen,setPersonalOpen]=useState(false);
   const managerHeading=useRef<HTMLHeadingElement>(null);
@@ -71,11 +71,11 @@ export default function Home() {
   const activeRoom=rooms.find(room=>room.id===rt);
   const zone=activeRoom?.zone || 'Asia/Jakarta';
   const displayTime=(value:string)=>new Date(value).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:zone});
-  const [inviteName,setInviteName]=useState('');
+  const [invitePreview,setInvitePreview]=useState<{code:string;name:string}|null>(null);
   const [history,setHistory]=useState<{id:string;post:string;starts_at:string;status:string}[]>([]);
   useEffect(()=>{
-    let active=true;setInviteName('');
-    if(db && session && /^[0-9a-f-]{36}$/i.test(invitation))db.rpc('preview_invite',{code:invitation}).then(({data})=>{if(active)setInviteName(data||'')});
+    let active=true;
+    if(db && session && /^[0-9a-f-]{36}$/i.test(invitation))db.rpc('preview_invite',{code:invitation}).then(({data})=>{if(active)setInvitePreview({code:invitation,name:data||''})});
     return ()=>{active=false};
   },[session,invitation]);
   useEffect(()=>{
@@ -106,9 +106,10 @@ export default function Home() {
       window.history.replaceState(null,'',current);setRecovering(false);setNotice('Kata sandi baru tersimpan.');
     }}/>
   </>;
+  const validInvite=invitePreview?.code===invitation?invitePreview.name:'';
   const onboarding=roomsLoaded && !rooms.length;
   const intent=invitation?'join':path;
-  const chooseRT=<label>RT aktif<select value={rt} onChange={e=>{setRT(e.target.value);setManagerSection('warga');setPersonalOpen(false);setMembers([]);setLink('');setNotice('')}}>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>;
+  const chooseRT=<label>RT aktif<select value={rt} onChange={e=>{setRT(e.target.value);setManagerSection('warga');setPersonalOpen(false);setMembers([]);setNotice('')}}>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>;
   const personalAttendance=<>
     {ownMember && <details key={rt} open={!ownMember.resident_name || !ownMember.home_address}>
       <summary>Data warga saya</summary>
@@ -133,11 +134,15 @@ export default function Home() {
     }}>Kembali ke pilihan RT</button>}
     {roomsLoaded && (!onboarding || intent==='join') && <details open={Boolean(invitation) || onboarding}><summary>Gabung melalui undangan</summary><form onSubmit={submit(async data=>{
       const {data:id,error}=await db.rpc('join_rt',{code:data.get('code')});if(error)throw error;
-      setMembers([]);setLink('');setRT(id);setInvitation('');setPath('');const current=new URL(location.href);current.searchParams.delete('undangan');window.history.replaceState(null,'',current);return 'Berhasil bergabung.';
-    })}><label>Kode undangan<input name="code" value={invitation} onChange={e=>setInvitation(e.target.value.trim())} required/></label>{inviteName && <p>Undangan dari {inviteName}</p>}<button disabled={busy||!inviteName}>Gabung RT</button></form></details>}
+      setMembers([]);setRT(id);setInvitation('');setPath('');const current=new URL(location.href);current.searchParams.delete('undangan');window.history.replaceState(null,'',current);return 'Berhasil bergabung.';
+    })}><label>Kode undangan<input name="code" value={invitation} onChange={e=>setInvitation(e.target.value.trim())} required/></label>{validInvite && <p>Undangan dari {validInvite}</p>}{invitation && !validInvite && <p role="status">
+      {invitePreview?.code===invitation || !/^[0-9a-f-]{36}$/i.test(invitation)
+        ?'Undangan tidak dapat digunakan. Pastikan Anda masuk dengan email yang diundang atau minta tautan baru ke pengurus.'
+        :'Memeriksa undangan…'}
+    </p>}<button disabled={busy||!validInvite}>Gabung RT</button></form></details>}
     {roomsLoaded && (!onboarding || intent==='create') && <details open={onboarding}><summary>Daftarkan RT</summary><form onSubmit={submit(async data=>{
       const {data:id,error}=await db.rpc('create_rt_with_region',{details:regionFromForm(data)});if(error)throw error;
-      setMembers([]);setLink('');setRT(id);setPath('');return 'RT berhasil dibuat. Anda bisa mengundang warga sekarang.';
+      setMembers([]);setRT(id);setPath('');return 'RT berhasil dibuat. Anda bisa mengundang warga sekarang.';
     })}><RegionFields/>{button('Buat RT')}</form></details>}
   </>;
   const rtSettings=rt && <RTSettings key={rt} db={db} rt={rt} members={members} manager={manager} isOwner={owner} revision={revision} changed={()=>refresh(n=>n+1)}/>;
@@ -176,11 +181,8 @@ export default function Home() {
       </div>
       <p role="status" className="manager-notice">{notice}</p>
       <div hidden={managerSection!=='warga'}>
+        {activeRoom && <Invitations key={rt} db={db} rt={rt} name={activeRoom.name} revision={revision}/>}
         <ResidentTable key={rt} db={db} rt={rt} members={members} revision={revision} changed={()=>refresh(n=>n+1)}/>
-        <section><h2>Undang warga</h2><form onSubmit={submit(async data=>{
-      const {data:code,error}=await db.rpc('invite_resident',{target:rt,recipient:data.get('email')});if(error)throw error;
-      setLink(location.origin+'/?undangan='+code);return 'Bagikan tautan ke warga yang diundang.';
-    })}>{field('Email warga','email','email')}{button('Buat undangan')}{link && <output>{link}</output>}</form></section>
       </div>
       <div hidden={managerSection!=='rekap'}>
         <Attendance key={rt} db={db} rt={rt} revision={revision}/>

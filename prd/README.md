@@ -9,6 +9,14 @@ Setiap RT memiliki nomor RT, nomor RW, kelurahan atau desa, kecamatan, serta kab
 Data warga mencakup nama dan alamat rumah per keanggotaan RT. Pengurus mengelolanya melalui tabel Warga pada RT aktif. Bagian penjadwalan dalam rancangan awal di bawah ini merupakan catatan historis. Cakupan terkini menjadi acuan untuk perubahan berikutnya.
 
 
+### Audit undangan warga
+
+Peran yang ditampilkan kepada pengguna terdiri dari **Pengurus RT** dan **Warga**. Undangan yang diterima memberikan peran Warga. Satu pengurus memegang hak menunjuk pengurus lain dan dapat mengalihkannya kepada anggota lain.
+
+Pada uji Chromium dengan delapan anggota demo, formulir undangan berada di bawah daftar. Setelah membuat undangan, aplikasi menampilkan URL sebagai teks dan pengurus harus menyalinnya sendiri. Untuk mencabut undangan, pengurus berpindah ke Pengaturan RT dan membuka Kontak privasi dan undangan. Undangan berlaku dua hari dan terikat pada email penerima.
+
+Tindakan **Undang warga** dan daftar **Undangan aktif** berada di bagian atas menu Warga. Pengurus dapat menyalin atau membagikan tautan lewat chat pribadi WhatsApp dan mencabut undangan selama masih aktif. Setiap tautan berlaku dua hari dan hanya bisa digunakan dengan email penerima.
+
 ## 1. Ringkasan Eksekutif
 
 **Masalah.** Pengurus RT kesulitan merekap kehadiran ronda dan membutuhkan ruang kerja yang bisa dikelola sendiri. Banyak peserta adalah warga lanjut usia yang perlu bisa mengisi presensi sendiri dari HP.

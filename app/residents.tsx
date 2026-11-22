@@ -91,7 +91,7 @@ export function ResidentTable({db,rt,members,revision,changed}:{
           const complete=Boolean(member.resident_name&&member.home_address);
           const status=statuses[member.user_id];
           return <tr key={member.user_id}>
-            <th scope="row">{member.resident_name||'Data belum lengkap'}<small>{member.role==='owner'?'Pemilik RT':member.role==='manager'?'Pengurus':'Warga'}</small></th>
+            <th scope="row">{member.resident_name||'Data belum lengkap'}<small>{member.role==='resident'?'Warga':'Pengurus RT'}</small></th>
             <td className="resident-expanded">{member.home_address||'Belum diisi'}</td>
             <td className="resident-expanded">{member.email}</td>
             <td>{status==='ready'?'Terdaftar':!complete?'Data belum lengkap':status==='approved'?'Boleh daftar':status==='pending'?'Belum disetujui':'—'}</td>
