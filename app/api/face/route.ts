@@ -30,22 +30,22 @@ export async function POST(request:Request) {
   const db=createClient(url,publicKey,{global:{headers:{Authorization:'Bearer '+token}},auth:{persistSession:false}});
   const {data:{user}}=await db.auth.getUser(token);
   if(!user)return Response.json({error:'Sesi masuk berakhir.'},{status:401});
-  const rt=headers.get('x-rt'), action=headers.get('x-action');
-  if(!rt||!['enroll','verify'].includes(action||'') || !request.body || (action==='enroll' && headers.get('x-consent')!=='v1'))return Response.json({error:'Permintaan tidak lengkap.'},{status:400});
+  const rt=headers.get('x-rt'), action=headers.get('x-action'), invite=headers.get('x-join-invite');
+  if(!rt||!['enroll','verify'].includes(action||'') || (invite && action!=='enroll') || !request.body || (action==='enroll' && headers.get('x-consent')!=='v1'))return Response.json({error:'Permintaan tidak lengkap.'},{status:400});
   if(running>=2)return Response.json({error:'Layanan sibuk. Coba sebentar lagi.'},{status:429});
   const key=Buffer.from(encryption,'hex');
   const aad=Buffer.from(rt+'/'+user.id);
   async function operation(fields:Record<string,unknown>) {
-    const payload=JSON.stringify({...fields,user:user!.id,rt,expires:Math.floor(Date.now()/1000)+60});
+    const payload=JSON.stringify({...fields,invite,user:user!.id,rt,expires:Math.floor(Date.now()/1000)+60});
     const signature=createHmac('sha256',Buffer.from(signer!,'hex')).update(payload).digest('hex');
-    const {data,error}=await db.rpc('face_operation',{payload,signature});
+    const {data,error}=await db.rpc(invite?'join_face_operation':'face_operation',{payload,signature});
     if(error)throw new Error(error.code==='P0001'?error.message:'Pendaftaran tidak tersedia. Hubungi pengurus.');
     return data;
   }
   running++;
   try {
-    const profile=await operation({action:'read'});
-    if((action==='enroll')===Boolean(profile.template))throw new Error('Periksa status pendaftaran wajah.');
+    const profile=await operation({action:invite?'check':'read'});
+    if(!invite && (action==='enroll')===Boolean(profile.template))throw new Error('Periksa status pendaftaran wajah.');
     const reader=request.body.getReader(), chunks:Uint8Array[]=[];
     let size=0;
     while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>limit){await reader.cancel();throw new Error('Gambar terlalu besar.')}chunks.push(value)}
@@ -55,7 +55,8 @@ export async function POST(request:Request) {
       cipher.setAAD(aad);
       const encrypted=Buffer.concat([cipher.update(Buffer.from(new Float32Array(vector).buffer)),cipher.final()]);
       const template=Buffer.concat([iv,cipher.getAuthTag(),encrypted]).toString('base64');
-      return Response.json(await operation({action,version:profile.version,template}));
+      const result=await operation({action,version:profile?.version,template});
+      return Response.json(invite?{time:new Date().toISOString()}:result);
     }
     const raw=Buffer.from(profile.template,'base64');
     const decipher=createDecipheriv('aes-256-gcm',key,raw.subarray(0,12));

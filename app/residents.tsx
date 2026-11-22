@@ -5,7 +5,7 @@ import type {SupabaseClient} from '@supabase/supabase-js';
 
 export type Member = {
   rt_id:string; user_id:string; email:string; role:string;
-  resident_name:string|null; home_address:string|null;
+  resident_name:string|null; home_address:string|null; whatsapp?:string|null;
 };
 
 export function ResidentProfileForm({db,rt,member,changed}:{
@@ -106,6 +106,7 @@ export function ResidentTable({db,rt,members,revision,changed}:{
       {selected && <>
       <h2 id="edit-resident-title">{selected.resident_name||selected.email}</h2>
       {selected.resident_name && <p>{selected.email}</p>}
+      {selected.whatsapp && <p>WhatsApp +{selected.whatsapp}</p>}
       <ResidentProfileForm key={selected.user_id} db={db} rt={rt} member={selected} changed={changed}/>
       {selected.resident_name && selected.home_address && statuses[selected.user_id]==='pending' && <>
         <p>Periksa identitas warga sebelum mengizinkan pendaftaran wajah.</p>

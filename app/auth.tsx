@@ -8,8 +8,8 @@ type Mode = 'login' | 'signup' | 'forgot' | 'reset' | 'resend';
 const titles = {login:'Masuk ke Ronda Pak', signup:'Daftar akun', forgot:'Lupa kata sandi?', reset:'Buat kata sandi baru', resend:'Kirim ulang konfirmasi'};
 const actions = {login:'Masuk', signup:'Daftar', forgot:'Kirim tautan pemulihan', reset:'Simpan kata sandi baru', resend:'Kirim ulang email'};
 
-export function AuthForm({db, invited, recovering, onReset}:{
-  db:SupabaseClient; invited:boolean; recovering:boolean; onReset:()=>void;
+export function AuthForm({db, invited, whatsappInvite, recovering, onReset}:{
+  db:SupabaseClient; invited:boolean; whatsappInvite:boolean; recovering:boolean; onReset:()=>void;
 }) {
   const pathname=usePathname();
   const [choice,setChoice]=useState<Mode>(pathname==='/daftar'?'signup':'login');
@@ -41,6 +41,7 @@ export function AuthForm({db, invited, recovering, onReset}:{
     const redirect=new URL('/',location.origin);
     const invite=new URLSearchParams(location.search).get('undangan');
     if(invite)redirect.searchParams.set('undangan',invite);
+    if(invite && whatsappInvite)redirect.searchParams.set('wa','1');
     return redirect;
   }
   async function googleLogin(){
@@ -105,7 +106,7 @@ export function AuthForm({db, invited, recovering, onReset}:{
     <div className="art-heading">Presensi<br/>ronda RT<span aria-hidden="true">.</span></div>
     <img src="/ronda-bersama.webp" width="1200" height="900" alt="Tiga bapak berkumpul di pos ronda kompleks perumahan."/>
   </aside><section className="auth-card"><h1>{sent?'Periksa email Anda':titles[mode]}</h1>
-    {invited && !sent && mode!=='reset' && <p>Masuk atau daftar dengan alamat email yang diundang pengurus.</p>}
+    {invited && !sent && mode!=='reset' && <p>{whatsappInvite?'Gunakan email Anda untuk melanjutkan pendaftaran warga.':'Masuk atau daftar dengan alamat email yang diundang pengurus.'}</p>}
     {mode==='forgot' && !sent && <p>Masukkan alamat email akun Anda. Kami akan mengirim tautan untuk mengganti kata sandi.</p>}
     <p role="status">{message}</p>
     {googleEnabled && !sent && (mode==='login'||mode==='signup') && <>

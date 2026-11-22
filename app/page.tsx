@@ -8,6 +8,7 @@ import {AuthForm} from './auth';
 import {PostLocation} from './post-location';
 import {ResidentProfileForm, ResidentTable, type Member} from './residents';
 import {RegionFields, regionFromForm, type Region} from './region-fields';
+import {JoinRegistration} from './join-registration';
 import {Invitations} from './invitations';
 import {Attendance} from './attendance';
 import {ManagerNavigation, managerSections, type ManagerSection} from './manager-navigation';
@@ -27,6 +28,7 @@ export default function Home() {
   const [members,setMembers] = useState<Member[]>([]);
   const [revision,refresh] = useState(0);
   const [invitation,setInvitation] = useState('');
+  const [whatsappInvite,setWhatsappInvite]=useState(false);
   const [path,setPath]=useState<''|'join'|'create'>('');
   const [recovering,setRecovering]=useState(false);
   const [roomsLoaded,setRoomsLoaded]=useState(false);
@@ -34,7 +36,9 @@ export default function Home() {
   const [personalOpen,setPersonalOpen]=useState(false);
   const managerHeading=useRef<HTMLHeadingElement>(null);
   useEffect(()=>{
-    const incomingInvitation=new URLSearchParams(location.search).get('undangan');
+    const params=new URLSearchParams(location.search);
+    const incomingInvitation=params.get('undangan');
+    setWhatsappInvite(params.get('wa')==='1');
     setInvitation(incomingInvitation || '');
     if(incomingInvitation)setManagerSection('pengaturan');
 
@@ -101,11 +105,14 @@ export default function Home() {
   if(!db)return <p>Layanan RT belum terhubung. Hubungi pengurus.</p>;
   if(!session || recovering)return <>
 
-    <AuthForm db={db} invited={Boolean(invitation)} recovering={Boolean(session)&&recovering} onReset={()=>{
+    <AuthForm db={db} invited={Boolean(invitation)} whatsappInvite={whatsappInvite} recovering={Boolean(session)&&recovering} onReset={()=>{
       const current=new URL(location.href);current.searchParams.delete('pemulihan');current.hash='';
       window.history.replaceState(null,'',current);setRecovering(false);setNotice('Kata sandi baru tersimpan.');
     }}/>
   </>;
+  if(whatsappInvite && invitation)return <JoinRegistration key={invitation} db={db} code={invitation} onExit={()=>{
+    location.assign('/');
+  }}/>;
   const validInvite=invitePreview?.code===invitation?invitePreview.name:'';
   const onboarding=roomsLoaded && !rooms.length;
   const intent=invitation?'join':path;
@@ -181,7 +188,7 @@ export default function Home() {
       </div>
       <p role="status" className="manager-notice">{notice}</p>
       <div hidden={managerSection!=='warga'}>
-        {activeRoom && <Invitations key={rt} db={db} rt={rt} name={activeRoom.name} revision={revision}/>}
+        {activeRoom && <Invitations key={rt} db={db} rt={rt} name={activeRoom.name} revision={revision} changed={()=>refresh(n=>n+1)}/>}
         <ResidentTable key={rt} db={db} rt={rt} members={members} revision={revision} changed={()=>refresh(n=>n+1)}/>
       </div>
       <div hidden={managerSection!=='rekap'}>

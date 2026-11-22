@@ -17,6 +17,14 @@ Pada uji Chromium dengan delapan anggota demo, formulir undangan berada di bawah
 
 Tindakan **Undang warga** dan daftar **Undangan aktif** berada di bagian atas menu Warga. Pengurus dapat menyalin atau membagikan tautan lewat chat pribadi WhatsApp dan mencabut undangan selama masih aktif. Setiap tautan berlaku dua hari dan hanya bisa digunakan dengan email penerima.
 
+### Undangan melalui WhatsApp
+
+Pengurus mengisi nama dan nomor WhatsApp, lalu mengirim tautan pribadi ke nomor warga. Tautan berlaku dua hari. Warga membuka tautan, masuk atau mendaftar dengan emailnya sendiri, lalu meninjau nama dan nomor WhatsApp, mengisi alamat rumah, dan dapat langsung mendaftarkan wajah.
+
+Keanggotaan aktif setelah pengurus memeriksa identitas dan memberi satu persetujuan pada menu Warga. Jika warga menyertakan wajah, persetujuan itu juga mengaktifkan templat wajah. Warga dapat mengajukan pendaftaran tanpa wajah dan memilih presensi manual. Data wajah yang belum disetujui disimpan sebagai templat terenkripsi, tersedia hanya untuk proses verifikasi, dan dihapus ketika pengajuan dibatalkan atau undangan kedaluwarsa dibersihkan. Nomor WhatsApp warga tersimpan bersama profil RT dan hanya tersedia bagi warga yang bersangkutan serta pengurus RT-nya.
+
+Undangan lama yang ditujukan ke email tetap dapat digunakan selama masih aktif.
+
 ## 1. Ringkasan Eksekutif
 
 **Masalah.** Pengurus RT kesulitan merekap kehadiran ronda dan membutuhkan ruang kerja yang bisa dikelola sendiri. Banyak peserta adalah warga lanjut usia yang perlu bisa mengisi presensi sendiri dari HP.

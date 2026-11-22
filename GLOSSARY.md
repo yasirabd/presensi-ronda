@@ -24,4 +24,8 @@ Catatan kehadiran warga yang dibuat setelah pemeriksaan wajah dan lokasi pos ron
 Anggota yang mengelola data warga, undangan, pengaturan pos, dan rekap presensi untuk RT-nya.
 
 **Undangan warga**
-Tautan yang diberikan pengurus agar penerima dapat bergabung sebagai Warga di RT yang menerbitkannya.
+Tautan pribadi yang dikirim pengurus ke nomor WhatsApp penerima agar ia dapat mengajukan keanggotaan di RT tersebut.
+
+
+**Pengajuan warga**
+Data pendaftaran yang dikirim dari undangan. Keanggotaan RT dimulai ketika pengurus mengonfirmasi identitas pemohon.
