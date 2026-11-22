@@ -2,6 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import {Linking,Platform} from 'react-native';
 import {db,publicUrl} from './client';
 import {Body,Button,Card,Field,Screen,Title} from './ui';
+import {NightLogin} from './NightScene';
 import {RegionEditor} from './RegionEditor';
 import {CodeJoin,draftMetadata,emptyProfile,FaceField,ProfileFields,stageJoin,uuid,WhatsAppJoin,type Face,type SavedDraft} from './JoinRegistration';
 
@@ -22,7 +23,7 @@ const errors:Record<string,string>={
 };
 
 export default function Access(props:AccessProps){
-  if(props.mode==='setup')return <Screen><Card><Title>Siapkan RT Anda</Title>
+  if(props.mode==='setup')return <Screen form><Card><Title>Siapkan RT Anda</Title>
     <Body>Isi nomor RT, RW, dan wilayah untuk membuat ruang RT dan mengundang warga.</Body>
     <RegionEditor label="Buat RT" onSave={async details=>{
       const {data: room,error}=await db.rpc('create_rt_with_region',{details});
@@ -39,6 +40,7 @@ export default function Access(props:AccessProps){
 
 function Auth({initial,params,onDone,onRegister,onLogin}:AccessProps&{initial:'login'|'signup'|'reset'}){
   const [mode,switchMode]=useState<AuthMode>(initial);
+  const [invalid,setInvalid]=useState<'email'|'password'|null>(null);
   const [email,setEmail]=useState(''),[password,setPassword]=useState('');
   const [profile,setProfile]=useState(emptyProfile),[face,setFace]=useState<Face>(null);
   const [sent,setSent]=useState(false),[busy,setBusy]=useState(false),[resend,setResend]=useState(false);
@@ -70,7 +72,7 @@ function Auth({initial,params,onDone,onRegister,onLogin}:AccessProps&{initial:'l
     return ()=>controller.abort();
   },[wa]);
   function change(next:AuthMode){
-    setPassword('');setSent(false);setMessage('');setResend(false);switchMode(next);
+    setInvalid(null);setPassword('');setSent(false);setMessage('');setResend(false);switchMode(next);
   }
   function returnUrl(native=false){
     const url=new URL(native?'rondapak://masuk':publicUrl('/'));
@@ -94,10 +96,11 @@ function Auth({initial,params,onDone,onRegister,onLogin}:AccessProps&{initial:'l
   }
   async function submit(){
     if(busy)return;
+    setInvalid(null);
     const address=email.trim();
-    if(mode!=='reset'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)){setMessage('Masukkan alamat email yang valid.');return}
-    if((mode==='signup'||mode==='reset')&&password.length<8){setMessage('Gunakan kata sandi minimal 8 karakter.');return}
-    if(mode==='login'&&!password){setMessage('Masukkan kata sandi Anda.');return}
+    if(mode!=='reset'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)){setInvalid('email');setMessage('Masukkan alamat email yang valid.');return}
+    if((mode==='signup'||mode==='reset')&&password.length<8){setInvalid('password');setMessage('Gunakan kata sandi minimal 8 karakter.');return}
+    if(mode==='login'&&!password){setInvalid('password');setMessage('Masukkan kata sandi Anda.');return}
     setBusy(true);setMessage('');setResend(false);
     try{
       if(mode==='login'){
@@ -138,12 +141,12 @@ function Auth({initial,params,onDone,onRegister,onLogin}:AccessProps&{initial:'l
       setMessage(authCode?errors[authCode]||'Permintaan belum berhasil. Periksa koneksi dan coba lagi.':(error as Error).message||'Permintaan belum berhasil.');
     }finally{setBusy(false)}
   }
-  if(wa&&mode!=='reset'&&status!=='active')return <Screen><Card><Title>{status==='loading'?'Memeriksa undangan…':status==='error'?'Tautan belum bisa diperiksa':'Undangan sudah tidak berlaku'}</Title>
+  if(wa&&mode!=='reset'&&status!=='active')return <NightLogin><Card><Title>{status==='loading'?'Memeriksa undangan…':status==='error'?'Tautan belum bisa diperiksa':'Undangan sudah tidak berlaku'}</Title>
     {status==='invalid'&&<Body>Minta tautan baru dari pengurus RT.</Body>}
     {status==='error'&&<Button label="Coba lagi" onPress={()=>retry(n=>n+1)}/>}
     {status!=='loading'&&<Button secondary label="Kembali ke Ronda Pak" onPress={onDone}/>}
-  </Card></Screen>;
-  return <Screen><Card>
+  </Card></NightLogin>;
+  const form = <Card>
     <Title>{sent?'Periksa email Anda':mode==='signup'&&(code||wa)?'Pendaftaran warga':titles[mode]}</Title>
     {combined&&!sent&&<Body>Tahap 1 dari 2. Isi data warga, lalu konfirmasi alamat email Anda.</Body>}
     {combined&&!sent&&<Button secondary label="Sudah punya akun? Masuk" disabled={busy} onPress={()=>change('login')}/>}
@@ -154,17 +157,18 @@ function Auth({initial,params,onDone,onRegister,onLogin}:AccessProps&{initial:'l
     {!sent&&<>
       {google&&(!manager||mode==='login')&&(mode==='login'||mode==='signup')&&<Button secondary disabled={busy} label="Lanjutkan dengan Google" onPress={googleLogin}/>}
       {combined&&<ProfileFields profile={profile} change={setProfile}/>}
-      {mode!=='reset'&&<Field label="Alamat email" value={email} onChangeText={setEmail} keyboardType="email-address"/>}
-      {mode!=='resend'&&mode!=='forgot'&&<Field label={mode==='reset'?'Kata sandi baru':'Kata sandi'} secureTextEntry value={password} onChangeText={setPassword}/>}
+      {mode!=='reset'&&<Field label="Alamat email" value={email} autoComplete="email" error={invalid==='email'?message:undefined} onChangeText={value=>{setEmail(value);if(invalid==='email'){setInvalid(null);setMessage('')}}} keyboardType="email-address"/>}
+      {mode!=='resend'&&mode!=='forgot'&&<Field label={mode==='reset'?'Kata sandi baru':'Kata sandi'} secureTextEntry value={password} autoComplete={mode==='login'?'current-password':'new-password'} error={invalid==='password'?message:undefined} onChangeText={value=>{setPassword(value);if(invalid==='password'){setInvalid(null);setMessage('')}}}/>}
       {(mode==='reset'||mode==='signup')&&<Body>Gunakan minimal 8 karakter.</Body>}
       {combined&&<FaceField face={face} change={setFace}/>}
     </>}
-    {Boolean(message)&&<Body>{message}</Body>}
+    {Boolean(message)&&!invalid&&<Body>{message}</Body>}
     {!sent&&<Button disabled={busy} label={busy?'Mohon tunggu…':combined?'Daftar sebagai warga':buttons[mode]} onPress={submit}/>}
     {(resend||(sent&&(mode==='signup'||mode==='resend'))||(wa&&mode==='login'))&&<Button secondary disabled={busy} label="Kirim ulang konfirmasi" onPress={()=>change('resend')}/>}
     {mode==='login'?<>
-      <Button secondary disabled={busy} label="Lupa kata sandi?" onPress={()=>change('forgot')}/>
+      <Button quiet disabled={busy} label="Lupa kata sandi?" onPress={()=>change('forgot')}/>
       <Button secondary disabled={busy} label={code?'Daftar sebagai warga':'Daftarkan RT'} onPress={code||manager?()=>change('signup'):onRegister}/>
-    </>:mode!=='reset'&&(!combined||sent)&&<Button secondary disabled={busy} label="Kembali ke halaman masuk" onPress={()=>{if(!manager&&!code&&mode==='signup')onLogin();else change('login')}}/>}
-  </Card></Screen>;
+    </>:mode!=='reset'&&(!combined||sent)&&<Button quiet disabled={busy} label="Kembali ke halaman masuk" onPress={()=>{if(!manager&&!code&&mode==='signup')onLogin();else change('login')}}/>}
+  </Card>;
+  return <NightLogin>{form}</NightLogin>;
 }

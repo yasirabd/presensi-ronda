@@ -9,7 +9,7 @@ Stack: Expo + Expo Router + React Native `StyleSheet`. Tanpa library UI pihak ke
 ## 1. Prinsip
 
 1. **Konten dulu.** Chrome (bar, border, bayangan) seminimal mungkin.
-2. **Krem hangat + hijau hutan.** Permukaan krem seperti kertas, aksi memakai hijau selempang maskot. Emas bulu maskot hanya untuk sorotan merek, bukan untuk tombol atau teks.
+2. **Permukaan netral dan satu aksen nila.** Gunakan putih dan abu sejuk untuk ruang kerja, grafit untuk mode gelap, serta nila untuk tindakan utama dan pilihan aktif. Warna hangat hadir melalui maskot dan ilustrasi.
 3. **Hierarki lewat teks.** Bedakan tingkat dengan ukuran dan ketebalan, bukan dengan menambah kotak dan garis.
 4. **Light dan dark sejak awal.** Setiap warna punya pasangan di kedua mode.
 5. **Nyaman disentuh.** Target sentuh minimal 44×44. Hormati safe area.
@@ -47,11 +47,11 @@ Warna diambil dari maskot burung hantu Ronda Pak:
 
 | Sumber di maskot | Hex | Peran |
 |---|---|---|
-| Selempang (hijau hutan) | `#35511C` | Aksen utama: tombol, tautan, tab aktif, wordmark |
-| Sayap (hijau sage) | `#899D6E` | Dekorasi, ilustrasi, ikon nonaktif di atas krem |
+| Selempang (hijau hutan) | `#35511C` | Selempang pada maskot |
+| Sayap (hijau sage) | `#899D6E` | Sayap pada ilustrasi |
 | Bulu (emas) | `#E6B75D` | Sorotan merek: badge, streak, highlight |
-| Wajah (krem hangat) | `#FDEDC9` | Latar sorotan lembut |
-| Latar kertas | `#FCF7E5` | Latar layar |
+| Wajah (krem hangat) | `#FDEDC9` | Wajah maskot |
+| Latar kertas | `#FCF7E5` | Kertas pada ilustrasi |
 | Bulan (kuning) | `#F6D55C` | Ikon mode malam / status ronda aktif |
 | Paruh dan kaki (jingga) | `#F2A93B` | Aksen kecil di ilustrasi saja |
 
@@ -71,62 +71,54 @@ export const brand = {
 
 export const palette = {
   light: {
-    bg: '#FCF7E5',
-    surface: '#F3EDD8',
-    surfaceRaised: '#FFFDF5',
-    border: '#E5DEC6',
-
-    text: '#1B2A18',
-    textSecondary: '#5E6B55',
-    textTertiary: '#8A9382',
-
-    accent: '#35511C',
-    onAccent: '#FDF7E5',
-    accentSoft: 'rgba(53,81,28,0.10)',
-
+    bg: '#F6F7F9',
+    surface: '#FFFFFF',
+    surfaceRaised: '#FAFAFC',
+    border: '#DDE0E6',
+    controlBorder: '#858B96',
+    text: '#191C24',
+    textSecondary: '#535B69',
+    textTertiary: '#646B78',
+    accent: '#364C97',
+    onAccent: '#FFFFFF',
+    accentSoft: '#E9EDFA',
     highlight: '#E6B75D',
-    onHighlight: '#1B2A18',
-    highlightSoft: '#FDEDC9',
-
-    success: '#3F7A35',
-    successSoft: 'rgba(63,122,53,0.12)',
-    danger: '#B4452F',
-    dangerSoft: 'rgba(180,69,47,0.10)',
-    warning: '#8F6209',
-    warningSoft: 'rgba(230,183,93,0.28)',
-
-    track: '#E9E2CB',
-    overlay: 'rgba(27,42,24,0.36)',
-    tabBar: 'rgba(252,247,229,0.92)',
+    onHighlight: '#302615',
+    highlightSoft: '#F9F1E1',
+    success: '#256247',
+    successSoft: '#E5F3EA',
+    danger: '#A43541',
+    dangerSoft: '#FAEAEC',
+    warning: '#80550D',
+    warningSoft: '#FBF0D9',
+    track: '#E8EAEE',
+    overlay: 'rgba(20,23,32,0.36)',
+    tabBar: 'rgba(255,255,255,0.94)',
   },
   dark: {
-    bg: '#141A12',
-    surface: '#1D251A',
-    surfaceRaised: '#273022',
-    border: '#35402F',
-
-    text: '#F4F1E4',
-    textSecondary: '#A9B3A0',
-    textTertiary: '#727C6B',
-
-    accent: '#9CCB8A',
-    onAccent: '#10210D',
-    accentSoft: 'rgba(156,203,138,0.16)',
-
+    bg: '#111318',
+    surface: '#1B1E25',
+    surfaceRaised: '#252932',
+    border: '#363B46',
+    controlBorder: '#787F8D',
+    text: '#F2F3F7',
+    textSecondary: '#B6BBC7',
+    textTertiary: '#A3A9B6',
+    accent: '#B7C6FF',
+    onAccent: '#172348',
+    accentSoft: '#2A334E',
     highlight: '#E6B75D',
-    onHighlight: '#1B2A18',
-    highlightSoft: 'rgba(230,183,93,0.18)',
-
-    success: '#7FCF8E',
-    successSoft: 'rgba(127,207,142,0.14)',
-    danger: '#F08A72',
-    dangerSoft: 'rgba(240,138,114,0.14)',
-    warning: '#F0C75E',
-    warningSoft: 'rgba(240,199,94,0.16)',
-
-    track: '#2B3526',
-    overlay: 'rgba(0,0,0,0.6)',
-    tabBar: 'rgba(29,37,26,0.92)',
+    onHighlight: '#302615',
+    highlightSoft: '#332E24',
+    success: '#8BD8A9',
+    successSoft: '#20392C',
+    danger: '#FFA4AD',
+    dangerSoft: '#40282E',
+    warning: '#E9C481',
+    warningSoft: '#393224',
+    track: '#30343D',
+    overlay: 'rgba(0,0,0,0.60)',
+    tabBar: 'rgba(27,30,37,0.94)',
   },
 } as const;
 
@@ -188,7 +180,7 @@ Dua keluarga font:
 - **Outfit** (ExtraBold 800 dan Bold 700): wordmark "Ronda Pak" dan judul besar. Geometris dengan bentuk huruf bulat, jadi selaras dengan bentuk maskot.
 - **Inter**: semua teks antarmuka lainnya.
 
-Wordmark: tulis "Ronda Pak" dalam satu baris, Outfit ExtraBold, warna `accent` (`#35511C`), `letterSpacing` sekitar −2% dari ukuran font. Untuk splash, ikon aplikasi, dan materi cetak, ekspor wordmark sebagai SVG agar tidak bergantung pada pemuatan font.
+Wordmark: tulis "Ronda Pak" dalam satu baris, Outfit ExtraBold, warna `text`, `letterSpacing` sekitar −2% dari ukuran font. Untuk splash, ikon aplikasi, dan materi cetak, ekspor wordmark sebagai SVG agar tidak bergantung pada pemuatan font.
 
 | Gaya | Dipakai untuk |
 |---|---|
@@ -540,6 +532,18 @@ export function Card({ style, ...rest }: ViewProps) {
 
 - Inter dan Outfit berlisensi SIL Open Font License; boleh dibundel di iOS, Android, dan web.
 - Warna merek diambil dari gambar maskot (sampel piksel), jadi bisa selisih sedikit dari file desain aslinya. Jika ada file sumber maskot, samakan nilai `brand.*` dengan file itu.
-- Kontras teks yang sudah dihitung (light, di atas `bg`): `text` 14:1, `accent` 8:1 ke atas, `textSecondary` 5.3:1, `success` 4.9:1, `danger` 5.2:1. `textTertiary` 3:1, hanya untuk placeholder dan teks nonaktif.
-- Aksen dan `success` sama-sama hijau. Selalu sertai status sukses dengan ikon centang agar tidak tertukar dengan elemen aksi.
+- Uji kontras teks pada latar layar, kartu, dan kontrol untuk kedua mode. Padukan warna status dengan label atau ikon.
 - Nilai `letterSpacing` adalah titik awal; sesuaikan setelah melihat hasil di perangkat.
+
+## Penerapan pada alur Ronda Pak
+
+- Formulir akun memakai satu kolom dengan lebar maksimal 480. Label selalu terlihat. Kesalahan format email atau kata sandi muncul di bawah kolom terkait dan diumumkan sebagai peringatan.
+- Sediakan satu aksi utama pada formulir. Tindakan pemulihan dan kembali memakai tombol teks dengan area sentuh penuh. Gunakan umpan balik tekan langsung dan jaga ukuran kontrol tetap stabil saat menerima fokus.
+- Navigasi ruang RT memasangkan ikon dengan label. Bagian aktif memakai garis tepi, latar lembut, dan status pilihan untuk pembaca layar. Biarkan pilihan berpindah baris saat ruang menyempit atau teks diperbesar.
+- Kontrol input menggunakan permukaan terangkat dan garis yang lebih kontras dari pemisah kartu. Pertahankan palet Owl saat menyesuaikan tema perangkat.
+
+### Beranda desa dan teras pos
+
+Beranda memakai ilustrasi 2D desa malam dengan tekstur lukisan tangan bernuansa Ghibli, rimbun dedaunan tropis, dan atap terakota. Bulan krem, jalan, sawah, rumah warga, dan pos berlampu terbaca dalam komposisi lebar maupun potongan layar HP. Tautan **Masuk** dan **Daftarkan RT** mendekatkan kamera ke lentera pada gambar yang sama selama 900 ms. Di HP, komposisi awal memperlihatkan jalan dan lingkungan desa, lalu panel formulir muncul di bawah pos. Tautan langsung ke formulir dan undangan memakai posisi akhir kamera.
+
+Lapisan padi, daun pisang, dan pelepah kelapa bergerak dengan jeda pendek mengikuti satu embusan. Bintang berpendar perlahan, sedangkan bulan dan panel tetap stabil. **Jeda** atau preferensi kurangi gerakan membuka formulir langsung. Saat layar kehilangan fokus atau aplikasi masuk ke latar belakang, animasi suasana berhenti.

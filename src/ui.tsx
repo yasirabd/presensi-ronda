@@ -14,13 +14,13 @@ export function useOwl() {
   return { ...palette[dark ? 'dark' : 'light'], dark };
 }
 
-export function Screen({ children }: PropsWithChildren) {
+export function Screen({ children, form }: PropsWithChildren<{form?: boolean}>) {
   const c = useOwl();
   const insets = useSafeAreaInsets();
   return <ScrollView style={{ flex: 1, backgroundColor: c.bg }}
     keyboardShouldPersistTaps="handled" contentInsetAdjustmentBehavior="never"
     contentContainerStyle={[styles.screen, { paddingTop: 24 + insets.top, paddingBottom: 52 + insets.bottom,
-      paddingLeft: size.screenPadding + insets.left, paddingRight: size.screenPadding + insets.right }]}><View style={styles.column}>{children}</View></ScrollView>;
+      paddingLeft: size.screenPadding + insets.left, paddingRight: size.screenPadding + insets.right }]}><View style={[styles.column, form && { maxWidth: 480 }]}>{children}</View></ScrollView>;
 }
 
 export function Card({ children }: PropsWithChildren) {
@@ -38,25 +38,25 @@ export function Body({ children }: PropsWithChildren) {
   return <Text style={[styles.body, { color: c.textSecondary }]}>{children}</Text>;
 }
 
-type ButtonProps = { label: string; onPress: () => void; secondary?: boolean; disabled?: boolean };
+type ButtonProps = { label: string; onPress: () => void; secondary?: boolean; quiet?: boolean; disabled?: boolean };
 
-export function Button({ label, onPress, secondary, disabled }: ButtonProps) {
+export function Button({ label, onPress, secondary, quiet, disabled }: ButtonProps) {
   const c = useOwl();
   const [focused, setFocused] = useState(false);
   return <Pressable accessibilityRole="button" accessibilityState={{ disabled: !!disabled }}
     disabled={disabled} onPress={onPress} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
     style={({ pressed }) => [styles.button, {
-      backgroundColor: disabled || secondary ? c.surface : c.accent,
-      borderColor: focused ? c.accent : secondary ? c.border : 'transparent',
+      backgroundColor: quiet ? (pressed ? c.accentSoft : 'transparent') : disabled || secondary ? c.surface : c.accent,
+      borderColor: focused ? (secondary || quiet || disabled ? c.accent : c.onAccent) : secondary && !quiet ? c.border : 'transparent',
       opacity: pressed ? 0.8 : 1,
     }]}>
-    <Text style={[styles.buttonText, { color: disabled ? c.textSecondary : secondary ? c.text : c.onAccent }]}>{label}</Text>
+    <Text style={[styles.buttonText, { color: disabled ? c.textSecondary : quiet ? c.accent : secondary ? c.text : c.onAccent }]}>{label}</Text>
   </Pressable>;
 }
 
-type FieldProps = Pick<TextInputProps, 'value' | 'onChangeText' | 'secureTextEntry' | 'keyboardType' | 'multiline'> & { label: string };
+type FieldProps = Pick<TextInputProps, 'value' | 'onChangeText' | 'secureTextEntry' | 'keyboardType' | 'multiline' | 'autoComplete'> & { label: string; error?: string };
 
-export function Field({ label, keyboardType, secureTextEntry, multiline, ...input }: FieldProps) {
+export function Field({ label, error, keyboardType, secureTextEntry, multiline, ...input }: FieldProps) {
   const c = useOwl();
   const [focused, setFocused] = useState(false);
   const rawInput = secureTextEntry || keyboardType === 'email-address' || keyboardType === 'url';
@@ -66,8 +66,9 @@ export function Field({ label, keyboardType, secureTextEntry, multiline, ...inpu
       autoCapitalize={rawInput ? 'none' : 'sentences'} autoCorrect={rawInput ? false : undefined}
       multiline={multiline} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
       selectionColor={c.accent} placeholderTextColor={c.textSecondary}
-      style={[styles.input, multiline && styles.multiline, { color: c.text, backgroundColor: c.surface,
-        borderColor: focused ? c.accent : c.border }]} />
+      style={[styles.input, multiline && styles.multiline, { color: c.text, backgroundColor: c.surfaceRaised,
+        borderColor: error ? c.danger : focused ? c.accent : c.controlBorder }]} />
+    {!!error && <Text accessibilityRole="alert" style={[type.callout, {color:c.danger}]}>{error}</Text>}
   </View>;
 }
 

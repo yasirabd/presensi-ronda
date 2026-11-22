@@ -31,6 +31,7 @@
           "locationWhenInUsePermission": "Izinkan Ronda Pak memeriksa lokasi saat Anda melakukan presensi."
         }
       ],
+      ["expo-audio", { "microphonePermission": false, "recordAudioAndroid": false }],
       "expo-secure-store",
       "expo-font"
     ],

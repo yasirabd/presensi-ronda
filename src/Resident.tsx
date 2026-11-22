@@ -1,3 +1,4 @@
+import {SectionMenu} from './SectionMenu';
 import { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import * as Location from 'expo-location';
@@ -185,7 +186,7 @@ function ResidentSpace({ rt, userId }: Props) {
   const face = updatedFace || read.data.face;
   const { zone, privacy_contact } = read.data.community;
   return <View style={{ gap: 16 }}>
-    <Choices items={['Absen', 'Riwayat', 'Data saya', 'Privasi']} value={section} select={setSection} />
+    <SectionMenu items={['Absen', 'Riwayat', 'Data saya', 'Privasi']} value={section} select={setSection} />
     {section === 'Absen' ? <Attendance rt={rt} userId={userId} status={face} zone={zone} /> :
       section === 'Riwayat' ? <History rt={rt} zone={zone} /> :
       section === 'Privasi' ? <Privacy rt={rt} userId={userId} contact={privacy_contact || ''} zone={zone} /> : <>

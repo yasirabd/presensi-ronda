@@ -1,8 +1,9 @@
+import {NightLogin} from './NightScene';
 import {useEffect,useRef,useState} from 'react';
 import {View} from 'react-native';
 import Capture,{jpegBytes} from './Capture';
 import {apiUrl, db} from './client';
-import {Body,Button,Card,Field,Screen,Title} from './ui';
+import {Body,Button,Card,Field,Title} from './ui';
 
 export const uuid=/^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i;
 export const draftMetadata='ronda_join_draft_id';
@@ -91,14 +92,14 @@ export function CodeJoin({initial,onDone}:{initial:string;onDone:()=>void}){
     catch(error){setMessage((error as Error).message||'Pengajuan belum berhasil.')}
     finally{setBusy(false)}
   }
-  return <Screen><Card><Title>Gabung melalui undangan</Title>
+  return <NightLogin><Card><Title>Gabung melalui undangan</Title>
     <Field label="Kode undangan" value={code} onChangeText={value=>{setName('');setCode(value.trim())}}/>
     {Boolean(name)&&<Body>Undangan dari {name}</Body>}
     {Boolean(message)&&<Body>{message}</Body>}
     {message==='Undangan belum bisa diperiksa.'&&<Button secondary label="Coba lagi" onPress={()=>retry(n=>n+1)}/>}
     <Button label="Gabung RT" onPress={join} disabled={!name||busy}/>
     <Button secondary label="Kembali" onPress={onDone}/>
-  </Card></Screen>;
+  </Card></NightLogin>;
 }
 
 export function WhatsAppJoin({code,requested,onDone}:{code:string;requested?:string;onDone:()=>void}){
@@ -186,7 +187,7 @@ export function WhatsAppJoin({code,requested,onDone}:{code:string;requested?:str
     catch(error){setMessage((error as Error).message||'Pengajuan belum dapat dibatalkan.')}
     finally{setBusy(false)}
   }
-  return <Screen><Card>
+  return <NightLogin><Card>
     {invite&&<Body>{invite.room}</Body>}
     <Title>{step==='done'?'Menunggu persetujuan pengurus':step==='legacy'?'Daftarkan wajah':'Pendaftaran warga'}</Title>
     {step==='loading'&&<Body>Memeriksa pendaftaran…</Body>}
@@ -203,5 +204,5 @@ export function WhatsAppJoin({code,requested,onDone}:{code:string;requested?:str
     {Boolean(message)&&<Body>{message}</Body>}
     {retryable&&<Button secondary label="Coba lagi" onPress={()=>retry(n=>n+1)}/>}
     {(step==='unavailable'||step==='done')&&<Button secondary label="Kembali ke Ronda Pak" onPress={onDone}/>}
-  </Card></Screen>;
+  </Card></NightLogin>;
 }
