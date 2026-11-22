@@ -80,8 +80,22 @@ await assert.rejects(op({action:'verify',shift:active,session:crypto.randomUUID(
 const proof=(await check(0,2)).session_id;
 await op({action:'verify',shift:active,session:proof,version});
 await assert.rejects(op({action:'verify',shift:active,session:proof,version}));
+const walkIn=(target,lon)=>
+ db.query("select public.start_attendance($1,0,$2,5,now()) result",[target,lon]).then(r=>r.rows[0].result);
+await assert.rejects(walkIn(otherRt,.02),/bukan anggota/);
+assert.equal((await walkIn(rt,.09)).status,'outside');
+const walkInProof=await walkIn(rt,.02);
+assert.equal(walkInProof.status,'inside');
+assert.equal((await db.query('select public.my_schedule($1) history',[rt])).rows[0].history.some(r=>r.id===walkInProof.shift_id),false);
+const retryProof=await walkIn(rt,.02);
+assert.equal(retryProof.shift_id,walkInProof.shift_id);
+await assert.rejects(op({action:'verify',shift:walkInProof.shift_id,session:walkInProof.session_id,version}));
+await op({action:'verify',shift:retryProof.shift_id,session:retryProof.session_id,version});
+assert.equal((await walkIn(rt,.02)).status,'already_recorded');
 await login(a,'a@example.org','aal1');
 assert.equal((await report()).find(r=>r.id===active).status,'Hadir (wajah dan lokasi)');
+assert.equal((await report()).find(r=>r.id===retryProof.shift_id).status,'Hadir (wajah dan lokasi)');
+
 await login(b,'b@example.org','aal1');
 await db.query('select public.withdraw_face($1)',[rt]);
 await assert.rejects(op({action:'read'}));

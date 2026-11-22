@@ -15,20 +15,22 @@ export function readPosition() {
   });
 }
 
-export function LocationCheck({db,rt,shift,onAttendance}:{db:SupabaseClient;rt:string;shift:string;onAttendance:()=>void}) {
+export function LocationCheck({db,rt,onAttendance}:{db:SupabaseClient;rt:string;onAttendance:()=>void}) {
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState('');
-  const [proof,setProof]=useState('');
+  const [proof,setProof]=useState<{shift:string;session:string}|null>(null);
   const [recorded,setRecorded]=useState(false);
   async function check() {
-    setProof('');setBusy(true);setMessage('Memeriksa lokasi…');
+    setProof(null);setBusy(true);setMessage('Memeriksa lokasi…');
     try {
       const position=await readPosition();
       const {latitude,longitude,accuracy}=position.coords;
-      const {data,error}=await db.rpc('check_shift_location',{shift_key:shift,lat:latitude,lon:longitude,accuracy_m:accuracy,sampled_at:new Date(position.timestamp).toISOString()});
+      const {data,error}=await db.rpc('start_attendance',{target:rt,lat:latitude,lon:longitude,accuracy_m:accuracy,sampled_at:new Date(position.timestamp).toISOString()});
       if(error) throw new Error(error.message);
-      if(data.status==='inside')setProof(data.session_id);
+      if(data.status==='inside')setProof({shift:data.shift_id,session:data.session_id});
+      if(data.status==='already_recorded')setRecorded(true);
       const responses:Record<string,string>={
+        already_recorded:'Presensi hari ini sudah tercatat.',
         inside:'Lokasi sesuai. Lanjutkan dengan kamera depan.',
         outside:'Dekati pos ronda, lalu coba lagi.',
         uncertain:'Lokasi kurang akurat. Pindah ke tempat terbuka, lalu coba lagi.'
@@ -44,10 +46,10 @@ export function LocationCheck({db,rt,shift,onAttendance}:{db:SupabaseClient;rt:s
     </>}
     <p role="status">{message}</p>
     {proof && <>
-      <FaceCamera key={proof} db={db} rt={rt} shift={shift} locationSession={proof} onDone={time=>{
-        setRecorded(true);setProof('');setMessage('Hadir · '+new Date(time).toLocaleString('id-ID'));onAttendance();
+      <FaceCamera key={proof.session} db={db} rt={rt} shift={proof.shift} locationSession={proof.session} onDone={time=>{
+        setRecorded(true);setProof(null);setMessage('Hadir · '+new Date(time).toLocaleString('id-ID'));onAttendance();
       }}/>
-      <button className="text-action" onClick={()=>{setProof('');setMessage('Silakan periksa kembali lokasi Anda.')}}>Ulangi pemeriksaan lokasi</button>
+      <button className="text-action" onClick={()=>{setProof(null);setMessage('Silakan periksa kembali lokasi Anda.')}}>Ulangi pemeriksaan lokasi</button>
     </>}
   </>;
 }

@@ -1,7 +1,6 @@
 import {useRef, useState} from 'react';
 
 export const managerSections = [
-  {id:'jadwal', label:'Jadwal'},
   {id:'warga', label:'Warga'},
   {id:'rekap', label:'Presensi'},
   {id:'pengaturan', label:'Pengaturan RT'},

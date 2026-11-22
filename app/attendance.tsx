@@ -48,10 +48,10 @@ export function Attendance({db,rt,revision}:{db:SupabaseClient;rt:string;revisio
     } finally {setSaving(false);setRefresh(n=>n+1)}
   }
   return <section><h2>Rekap presensi</h2>
-    <label>Bulan giliran<input type="month" value={month} onChange={e=>setMonth(e.target.value)}/></label>
+    <label>Bulan presensi<input type="month" value={month} onChange={e=>setMonth(e.target.value)}/></label>
     <label>Cari email warga<input type="search" value={email} onChange={e=>setEmail(e.target.value)}/></label>
     <p role="status">{message}</p>
-    {loading?<p>Memuat rekap…</p>:visible.length===0?<p>Belum ada giliran yang sesuai.</p>:<>
+    {loading?<p>Memuat rekap…</p>:visible.length===0?<p>Belum ada presensi pada periode ini.</p>:<>
       <button onClick={download}>Unduh rekap CSV</button>
       {visible.map(row=><details key={row.id}><summary>{row.email} · {row.status}<small>{row.post} · {new Date(row.starts_at).toLocaleString('id-ID')}</small></summary>
         {row.reason && <p>Alasan terakhir: {row.reason}</p>}
