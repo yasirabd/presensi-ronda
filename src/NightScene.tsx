@@ -8,6 +8,7 @@ import Svg, { Circle, Defs, LinearGradient, RadialGradient, Path, Rect, Stop } f
 import { Ionicons } from '@expo/vector-icons';
 import { create } from 'zustand';
 
+import './village-motion.css';
 import { type } from './theme/typography';
 
 const useMotion = create<{paused: boolean; toggle: () => void}>(set => ({
@@ -69,10 +70,15 @@ function VillageSound({visible}: {visible:boolean}) {
   </Pressable>;
 }
 
+// React Native keeps its native driver. On the web CSS owns each ambient layer.
+function motionLayer(name: string) {
+  return Platform.OS === 'web' ? {dataSet: {villageEffect: name}} : {};
+}
+
 function Irrigation({running}: {running:boolean}) {
   const flow = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    if (!running) return;
+    if (!running || Platform.OS === 'web') return;
     const loop = Animated.loop(Animated.timing(flow,{toValue:1,duration:1250,
       easing:Easing.linear,useNativeDriver:driver,isInteraction:false}));
     loop.start();
@@ -80,13 +86,13 @@ function Irrigation({running}: {running:boolean}) {
   }, [flow,running]);
   const opacity = flow.interpolate({inputRange:[0,.2,.7,1],outputRange:[.12,1,.82,.12]});
   return <>
-    <Animated.View style={{position:'absolute',left:'21.8%',top:'89.6%',width:'1.7%',height:'7.3%',
+    <Animated.View {...motionLayer("water")} style={{position:'absolute',left:'21.8%',top:'89.6%',width:'1.7%',height:'7.3%',
       opacity,transform:[{translateY:flow.interpolate({inputRange:[0,1],outputRange:[0,6]})}]}}>
       <Svg width="100%" height="100%" viewBox="0 0 12 36" preserveAspectRatio="none">
         <Path d="M2 1q4 8 5 17m1 6 2 8" stroke="#d4f1f4" fill="none" strokeWidth="2.7"/>
       </Svg>
     </Animated.View>
-    <Animated.View style={{position:'absolute',left:'18.9%',top:'96.1%',width:'8%',height:'2%',
+    <Animated.View {...motionLayer("ripple")} style={{position:'absolute',left:'18.9%',top:'96.1%',width:'8%',height:'2%',
       borderRadius:100,borderWidth:1,borderColor:'#c4e5e9',opacity,
       transform:[{scale:flow.interpolate({inputRange:[0,1],outputRange:[.3,1.3]})}]}}/>
   </>;
@@ -96,13 +102,13 @@ function Irrigation({running}: {running:boolean}) {
 function SkyDrift({running}: {running:boolean}) {
   const drift=useRef(new Animated.Value(0)).current;
   useEffect(()=>{
-    if (!running) return;
+    if (!running || Platform.OS === 'web') return;
     const loop=Animated.loop(Animated.timing(drift,{toValue:1,duration:10500,
       easing:Easing.linear,useNativeDriver:driver,isInteraction:false}));
     loop.start();
     return ()=>loop.stop();
   },[drift,running]);
-  return <Animated.View style={[StyleSheet.absoluteFill,{
+  return <Animated.View {...motionLayer("cloud")} style={[StyleSheet.absoluteFill,{
     opacity:drift.interpolate({inputRange:[0,.12,.78,1],outputRange:[0,.64,.5,0]}),
     transform:[{translateX:drift.interpolate({inputRange:[0,1],outputRange:[-16,28]})}],
   }]}>
@@ -116,9 +122,10 @@ function SkyDrift({running}: {running:boolean}) {
 function Landscape({width,height,wide,camera,wind,running,terrace}: {
   width:number; height:number; wide:boolean; running:boolean; terrace:boolean; camera:Animated.Value; wind:Animated.Value;
 }) {
-  const w=width, h=wide?height:w/1.5;
+  const h=wide?height:width/1.5;
+  const w=h*1.5;
   const anchorX=.66, anchorY=.51;
-  const left=0;
+  const left=width>=w ? width-w : (width-w)/2;
   const top=height-h;
   const zoom=wide?1.62:1.85;
   const approachY=wide?anchorY:.22;
@@ -136,13 +143,14 @@ function Landscape({width,height,wide,camera,wind,running,terrace}: {
   });
   return <View accessible accessibilityLabel={description} accessibilityRole="image" pointerEvents="none"
     style={[StyleSheet.absoluteFill,{overflow:'hidden'}]}>
-    <View aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
+    <View {...(Platform.OS==='web' ? {dataSet:{villagePlayback:running?'running':'paused'}} : {})}
+      aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
       style={{position:'absolute',left,top,width:w,height:h}}>
       <Animated.View style={[StyleSheet.absoluteFill,cameraLayer(1)]}>
-        <Image source={picture} resizeMode="stretch" fadeDuration={0} style={{width:'100%',height:'100%'}}/>
+        <Image source={picture} resizeMode="contain" fadeDuration={0} style={{width:'100%',height:'100%'}}/>
         <Irrigation running={running}/>
         <SkyDrift running={running}/>
-        {terrace && <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill,{
+        {terrace && <Animated.View {...motionLayer("steam")} pointerEvents="none" style={[StyleSheet.absoluteFill,{
           opacity:wind.interpolate({inputRange:[0,.25,.6,1],outputRange:[0,.78,.48,0]}),
           transform:[{translateY:wind.interpolate({inputRange:[0,1],outputRange:[0,-h*.013]})}],
         }]}>
@@ -151,14 +159,14 @@ function Landscape({width,height,wide,camera,wind,running,terrace}: {
           </Svg>
         </Animated.View>}
         {[[[100,44],[215,47],[414,29]],[[170,72],[229,21],[401,61]]].map((stars,group)=>
-          <Animated.View key={group} style={[StyleSheet.absoluteFill,{
+          <Animated.View {...motionLayer(group?"stars-late":"stars")} key={group} style={[StyleSheet.absoluteFill,{
             opacity:wind.interpolate({inputRange:[0,.24,.57,.8,1],outputRange:group?[.95,.25,.1,.6,.95]:[.18,1,.35,.12,.18]}),
           }]}>
             <Svg width="100%" height="100%" viewBox="0 0 600 400" preserveAspectRatio="none">
               {stars.map(([x,y])=><Path key={x} d={`M${x} ${y-4}l1 3 3 1-3 1-1 3-1-3-3-1 3-1z`} fill="#fff1ca"/>)}
             </Svg>
           </Animated.View>)}
-        <Animated.View style={[StyleSheet.absoluteFill,{opacity:wind.interpolate({
+        <Animated.View {...motionLayer("lantern")} style={[StyleSheet.absoluteFill,{opacity:wind.interpolate({
           inputRange:[0,.28,.54,.72,1],outputRange:[.24,.7,.33,.51,.24],
         })}]}>
           <Svg width="100%" height="100%" viewBox="0 0 600 400" preserveAspectRatio="none">
@@ -170,7 +178,7 @@ function Landscape({width,height,wide,camera,wind,running,terrace}: {
       </Animated.View>
       <Animated.View style={[StyleSheet.absoluteFill,cameraLayer(1.16)]}>
         {/* Silhouettes overlap the edges of the painted garden. Each pivots at its own stem. */}
-        <Animated.View style={{position:'absolute',left:'-2%',bottom:'-2%',width:'21%',height:'11%',transformOrigin:'bottom left',transform:[{rotate:gust(0,6)}]}}>
+        <Animated.View {...motionLayer("grass")} style={{position:'absolute',left:'-2%',bottom:'-2%',width:'21%',height:'11%',transformOrigin:'bottom left',transform:[{rotate:gust(0,6)}]}}>
           <Svg width="100%" height="100%" viewBox="0 0 220 72" preserveAspectRatio="none">
             {Array.from({length:34},(_,i)=>{
               const x=i*6.5, tip=18+((i*23)%44);
@@ -178,14 +186,14 @@ function Landscape({width,height,wide,camera,wind,running,terrace}: {
             })}
           </Svg>
         </Animated.View>
-        <Animated.View style={{position:'absolute',right:'-3%',top:'12%',width:'23%',height:'28%',transformOrigin:'top right',transform:[{rotate:gust(.08,-5)}]}}>
+        <Animated.View {...motionLayer("palm")} style={{position:'absolute',right:'-3%',top:'12%',width:'23%',height:'28%',transformOrigin:'top right',transform:[{rotate:gust(.08,-5)}]}}>
           <Svg width="100%" height="100%" viewBox="0 0 150 100">
             <Path d="M150 0Q77 7 13 75q20-46 43-53l-8 14 15-20Q115-3 150 0Z" fill="#102d35"/>
             <Path d="M150 0Q91 24 72 81q2-49 25-64l-3 12 8-17z" fill="#153339"/>
             <Path d="M146 2Q84 16 19 70" stroke="#43604d" fill="none"/>
           </Svg>
         </Animated.View>
-        <Animated.View style={{position:'absolute',left:'-4%',top:'-3%',width:'34%',height:'26%',transformOrigin:'top left',transform:[{rotate:gust(.16,4.2)}]}}>
+        <Animated.View {...motionLayer("branch")} style={{position:'absolute',left:'-4%',top:'-3%',width:'34%',height:'26%',transformOrigin:'top left',transform:[{rotate:gust(.16,4.2)}]}}>
           <Svg width="100%" height="100%" viewBox="0 0 200 110" preserveAspectRatio="none">
             <Path d="M0 1q95 0 192 90" stroke="#101e32" strokeWidth="3" fill="none"/>
             {Array.from({length:21},(_,i)=>{
@@ -226,7 +234,7 @@ export function VillageStage({children,terrace=false,actions}:StageProps) {
   const stageHeight=wide?Math.max(570,Math.min(height,900)):Math.max(460,Math.min(height*.78,675));
   const imageHeight=wide?stageHeight:safe.top+64+width/1.5;
   useEffect(()=>{
-    if(!running)return;
+    if (!running || Platform.OS === 'web') return;
     const loop=Animated.loop(Animated.timing(wind,{toValue:1,duration:4900,easing:Easing.linear,useNativeDriver:driver,isInteraction:false}));
     loop.start();
     return ()=>loop.stop();
@@ -283,9 +291,9 @@ export function VillageStage({children,terrace=false,actions}:StageProps) {
               <Stop offset="1" stopColor={nightGround} stopOpacity="1"/>
             </LinearGradient>
             <LinearGradient id="copyShade" x1="0%" y1="0%" x2="100%" y2="0%">
-              <Stop offset="0" stopColor={nightGround} stopOpacity=".94"/>
-              <Stop offset=".42" stopColor={nightGround} stopOpacity=".65"/>
-              <Stop offset=".8" stopColor={nightGround} stopOpacity="0"/>
+              <Stop offset={String(Math.max(0,1-imageHeight*1.5/width))} stopColor={nightGround} stopOpacity="1"/>
+              <Stop offset={String(Math.max(.42,1-imageHeight*1.5/width*.8))} stopColor={nightGround} stopOpacity=".65"/>
+              <Stop offset={String(Math.max(.8,1-imageHeight*1.5/width*.4))} stopColor={nightGround} stopOpacity="0"/>
             </LinearGradient>
           </Defs>
           {wide && <Rect width="100%" height="100%" fill="url(#copyShade)"/>}

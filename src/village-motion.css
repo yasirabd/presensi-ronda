@@ -1,0 +1,43 @@
+[data-village-effect] {
+  animation-duration: 5s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+[data-village-effect="grass"] { animation-name: ronda-sway; --bend: 5deg; }
+[data-village-effect="palm"] { animation-name: ronda-sway; --bend: -4deg; animation-delay: -1.6s; }
+[data-village-effect="branch"] { animation-name: ronda-sway; --bend: 3.5deg; animation-duration: 5.8s; }
+[data-village-effect="stars"], [data-village-effect="stars-late"] { animation-name: ronda-twinkle; animation-duration: 3.6s; }
+[data-village-effect="stars-late"] { animation-duration: 4.4s; animation-delay: -2.2s; }
+[data-village-effect="lantern"] { animation-name: ronda-glow; animation-duration: 3.2s; }
+[data-village-effect="water"] { animation: ronda-water 1.45s linear infinite; }
+[data-village-effect="ripple"] { animation: ronda-ripple 1.8s ease-out -.5s infinite; }
+[data-village-effect="cloud"] { animation: ronda-cloud 12s linear infinite; }
+[data-village-effect="steam"] { animation: ronda-steam 4s ease-in-out infinite; }
+[data-village-playback="paused"] [data-village-effect] { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  [data-village-effect] { animation-name: none; }
+}
+
+@keyframes ronda-sway { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(var(--bend)); } }
+@keyframes ronda-twinkle { 0%, 100% { opacity: .16; } 50% { opacity: .95; } }
+@keyframes ronda-glow { 0%, 100% { opacity: .21; } 50% { opacity: .73; } }
+@keyframes ronda-water {
+  from { opacity: 0; transform: translateY(0); }
+  35%, 65% { opacity: .94; }
+  to { opacity: 0; transform: translateY(5px); }
+}
+@keyframes ronda-ripple {
+  from { opacity: 0; transform: scale(.35); }
+  30% { opacity: .9; }
+  to { opacity: 0; transform: scale(1.3); }
+}
+@keyframes ronda-cloud {
+  from { opacity: 0; transform: translateX(-16px); }
+  25%, 70% { opacity: .56; }
+  to { opacity: 0; transform: translateX(28px); }
+}
+@keyframes ronda-steam {
+  from { opacity: 0; transform: translateY(0); }
+  45% { opacity: .72; }
+  to { opacity: 0; transform: translateY(-8px); }
+}
