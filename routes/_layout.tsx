@@ -1,6 +1,4 @@
 import { Stack } from 'expo-router';
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
-import { Outfit_700Bold, Outfit_800ExtraBold } from '@expo-google-fonts/outfit';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { useOwl } from '../src/ui';
@@ -11,7 +9,15 @@ import { db, trackForeground } from '../src/client';
 import { useWorkspace } from '../src/store';
 
 export default function Layout() {
-  const [fontsReady, fontError] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Outfit_700Bold, Outfit_800ExtraBold });
+  const [fontsReady, fontError] = useFonts({
+    Inter_400Regular: require('../assets/fonts/Inter_400Regular.ttf'),
+    Inter_500Medium: require('../assets/fonts/Inter_500Medium.ttf'),
+    Inter_600SemiBold: require('../assets/fonts/Inter_600SemiBold.ttf'),
+    Inter_700Bold: require('../assets/fonts/Inter_700Bold.ttf'),
+    Outfit_700Bold: require('../assets/fonts/Outfit_700Bold.ttf'),
+    Outfit_800ExtraBold: require('../assets/fonts/Outfit_800ExtraBold.ttf'),
+    ionicons: require('../assets/fonts/Ionicons.ttf'),
+  });
   const c = useOwl();
   useEffect(() => {
     const { data } = db.auth.onAuthStateChange((event, session) => {

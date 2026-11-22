@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Body, Button, useOwl } from './ui';
+import { Button } from './ui';
 
-import { VillageStage } from './NightScene';
+import { nightGround, VillageStage } from './NightScene';
 import { type } from './theme/typography';
 
 
@@ -23,7 +23,7 @@ const guides = [
 ];
 
 export default function Landing({ onRegister, onLogin }: { onRegister: () => void; onLogin: () => void }) {
-  const c = useOwl();
+  const c = {bg:nightGround,text:'#f2f3f7',border:'#324051',accent:'#bdcafa'};
   const { width, fontScale } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const wide = width / Math.max(1, fontScale) >= 820;
@@ -41,7 +41,7 @@ export default function Landing({ onRegister, onLogin }: { onRegister: () => voi
       <Text style={[type.body,{color:'#f3f5fa',marginTop:12}]}>Undang warga lewat WhatsApp, atur lokasi pos ronda, dan lihat rekap kehadiran dalam satu tempat.</Text>
     </VillageStage>
     <View style={[s.canvas,{alignSelf:'center',paddingHorizontal:wide?48:16}]}>
-      <View style={[s.guide, { borderColor: c.border }]}>
+      <View style={s.guide}>
         <Text accessibilityRole="header" style={[s.guideTitle, { color: c.text }]}>Panduan ronda</Text>
         <View style={s.questions}>{guides.map((guide, index) => {
           const expanded = openGuide === index;
@@ -55,7 +55,7 @@ export default function Landing({ onRegister, onLogin }: { onRegister: () => voi
             {expanded && <View style={s.steps}>{guide.steps.map((step, i) =>
               <View key={step} style={s.step}>
                 <Text style={[s.number, { color: c.accent }]}>{i + 1}.</Text>
-                <View style={s.column}><Body>{step}</Body></View>
+                <View style={s.column}><Text style={[type.body,{color:'#d5dce6'}]}>{step}</Text></View>
               </View>)}</View>}
           </View>;
         })}</View>
@@ -70,7 +70,7 @@ const s = StyleSheet.create({
   headline: type.hero,
   actions: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', paddingTop: 4 },
   note: type.label,
-  guide: { paddingTop: 24, borderTopWidth: 1, gap: 12 },
+  guide: { paddingTop: 24, gap: 12 },
   guideTitle: type.display,
   questions: { width: '100%', maxWidth: 720 },
   question: { borderBottomWidth: 1 },
