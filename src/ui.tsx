@@ -39,19 +39,23 @@ export function Body({ children }: PropsWithChildren) {
   return <Text style={[styles.body, { color: c.textSecondary }]}>{children}</Text>;
 }
 
-type ButtonProps = { label: string; nativeID?: string; onPress: (event: GestureResponderEvent) => void; secondary?: boolean; quiet?: boolean; disabled?: boolean };
+type ButtonProps = { label: string; icon?: keyof typeof Ionicons.glyphMap; nativeID?: string; onPress: (event: GestureResponderEvent) => void; secondary?: boolean; quiet?: boolean; disabled?: boolean };
 
-export function Button({ label, nativeID, onPress, secondary, quiet, disabled }: ButtonProps) {
+export function Button({ label, icon, nativeID, onPress, secondary, quiet, disabled }: ButtonProps) {
   const c = useOwl();
   const [focused, setFocused] = useState(false);
-  return <Pressable nativeID={nativeID} accessibilityRole="button" accessibilityState={{ disabled: !!disabled }}
+  const color = disabled ? c.textSecondary : quiet ? c.accent : secondary ? c.text : c.onAccent;
+  return <Pressable nativeID={nativeID} accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: !!disabled }}
     disabled={disabled} onPress={onPress} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
     style={({ pressed }) => [styles.button, {
       backgroundColor: quiet ? (pressed ? c.accentSoft : 'transparent') : disabled || secondary ? c.surface : c.accent,
       borderColor: focused ? (secondary || quiet || disabled ? c.accent : c.onAccent) : secondary && !quiet ? c.border : 'transparent',
       opacity: pressed ? 0.8 : 1,
     }]}>
-    <Text style={[styles.buttonText, { color: disabled ? c.textSecondary : quiet ? c.accent : secondary ? c.text : c.onAccent }]}>{label}</Text>
+    <View style={{flexDirection:'row', alignItems:'center', justifyContent:'center', gap:space.xs}}>
+      {icon && <Ionicons accessible={false} name={icon} size={size.iconSmall} color={color}/>}
+      <Text style={[styles.buttonText, {color, flexShrink:1}]}>{label}</Text>
+    </View>
   </Pressable>;
 }
 

@@ -55,11 +55,11 @@ export default function RondaApp({path}: {path: string}) {
       </Pressable>
     </View>
     {options && <Card>
-      {w.rooms.length>1 && <><Body>Pilih RT aktif</Body>{w.rooms.map(item=><Button key={item.id} label={item.name} secondary={item.id!==w.current} onPress={()=>w.choose(item.id)}/>)}</>}
-      {manager && <Button secondary label={personal?'Kelola RT':'Presensi saya'} onPress={()=>{setPersonal(!personal);setOptions(false);}}/>}
-      <Button secondary label="Gunakan kode undangan" onPress={()=>router.push({pathname:'/',params:{gabung:'1'}})}/>
-      <Button secondary label="Daftarkan RT lain" onPress={()=>router.push('/daftar')}/>
-      <Button secondary label="Keluar" onPress={logout}/>
+      {w.rooms.length>1 && <><Body>Pilih RT aktif</Body>{w.rooms.map(item=><Button key={item.id} icon={item.id===w.current?'checkmark-circle-outline':'home-outline'} label={item.name} secondary={item.id!==w.current} onPress={()=>w.choose(item.id)}/>)}</>}
+      {manager && <Button secondary icon={personal?'settings-outline':'location-outline'} label={personal?'Kelola RT':'Presensi saya'} onPress={()=>{setPersonal(!personal);setOptions(false);}}/>}
+      <Button secondary icon="ticket-outline" label="Gunakan kode undangan" onPress={()=>router.push({pathname:'/',params:{gabung:'1'}})}/>
+      <Button secondary icon="add-circle-outline" label="Daftarkan RT lain" onPress={()=>router.push('/daftar')}/>
+      <Button secondary icon="log-out-outline" label="Keluar" onPress={logout}/>
     </Card>}
     {!!notice && <Body>{notice}</Body>}
     {w.error ? <Card><Body>{w.error}</Body><Button label="Coba lagi" onPress={()=>void w.refresh()}/></Card>
