@@ -43,14 +43,15 @@ export function FaceCamera({db,rt,shift,locationSession,onDone}:Props){
     <p role="status">{message}</p></div>;
 }
 
-export function FaceRegistration({db,rt}:{db:SupabaseClient;rt:string}){
+export function FaceRegistration({db,rt,profileComplete}:{db:SupabaseClient;rt:string;profileComplete:boolean}){
   const [status,setStatus]=useState('loading'),[message,setMessage]=useState('');
   useEffect(()=>{let active=true;db.rpc('face_status',{target:rt}).then(({data,error})=>{
     if(active)setStatus(error?'error':data)
   });return ()=>{active=false}},[db,rt]);
   return <details><summary>Pendaftaran wajah saya</summary>
-    {status==='approved' && <FaceCamera db={db} rt={rt} onDone={()=>{setStatus('ready');setMessage('Wajah terdaftar.')}}/>}
-    {status==='pending' && <p>Minta pengurus memeriksa identitas Anda sebelum mendaftar. Anda juga bisa menggunakan presensi manual.</p>}
+    {!profileComplete && (status==='pending'||status==='approved') && <p>Isi nama dan alamat di Data warga saya sebelum mendaftarkan wajah.</p>}
+    {profileComplete && status==='approved' && <FaceCamera db={db} rt={rt} onDone={()=>{setStatus('ready');setMessage('Wajah terdaftar.')}}/>}
+    {profileComplete && status==='pending' && <p>Minta pengurus memeriksa identitas Anda sebelum mendaftar. Anda juga bisa menggunakan presensi manual.</p>}
     {status==='ready' && <><p>Siap absen mandiri. Anda bisa menghapus templat wajah dan beralih ke presensi manual.</p><button onClick={async()=>{
       const {error}=await db.rpc('withdraw_face',{target:rt});if(error)setMessage(error.message);else{setStatus('pending');setMessage('Templat dihapus.')}
     }}>Tarik persetujuan dan hapus templat</button></>}

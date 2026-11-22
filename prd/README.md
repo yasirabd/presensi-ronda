@@ -1,5 +1,14 @@
 # Ronda Pak — PRD SaaS Presensi Ronda RT
 
+## Cakupan MVP terkini
+
+Warga bisa melakukan presensi di pos setelah verifikasi wajah dan lokasi berhasil. Presensi mandiri berlaku sekali per hari menurut zona waktu RT dan bisa dimulai kapan saja. Riwayat presensi yang sudah tercatat tetap tersedia.
+
+Setiap RT memiliki nomor RT, nomor RW, kelurahan atau desa, kecamatan, serta kabupaten atau kota. Formulir wilayah menggunakan API referensi administrasi. Titik pos ditetapkan oleh pengurus di lokasi pos dan dipakai untuk memeriksa jarak saat warga absen.
+
+Data warga mencakup nama dan alamat rumah per keanggotaan RT. Pengurus mengelolanya melalui tabel Warga pada RT aktif. Bagian penjadwalan dalam rancangan awal di bawah ini merupakan catatan historis. Cakupan terkini menjadi acuan untuk perubahan berikutnya.
+
+
 ## 1. Ringkasan Eksekutif
 
 **Masalah.** Pengurus RT kesulitan merekap kehadiran ronda dan membutuhkan ruang kerja yang bisa dikelola sendiri. Banyak peserta adalah warga lanjut usia yang perlu bisa mengisi presensi sendiri dari HP.

@@ -182,3 +182,19 @@ body:has(.manager-layout) header { background: var(--workspace-sidebar); }
 .schedule-post button { width: auto; padding-inline: .25rem; }
 .location-capture { width: auto; background: var(--workspace-selected); color: var(--workspace-accent); border-color: var(--workspace-border); padding-inline: 1rem; }
 .location-coordinates { margin: 0; font-variant-numeric: tabular-nums; }
+
+textarea {
+  width: 100%; min-height: 3rem; padding: .65rem; border: 1px solid var(--sage);
+  border-radius: .6rem; font: inherit; color: inherit; resize: vertical;
+}
+.resident-table-wrap { margin-block-start: 1rem; overflow-x: auto; }
+.resident-table { width: 100%; border-collapse: collapse; text-align: start; }
+.resident-table th, .resident-table td { padding: .65rem; text-align: start; border-bottom: 1px solid var(--workspace-border); vertical-align: top; overflow-wrap: anywhere; }
+.resident-table thead { background: var(--workspace-bg); }
+.resident-table th small { font-size: .875rem; font-weight: 400; }
+.resident-table button { width: auto; padding: .25rem; }
+.resident-editor { overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .resident-table .resident-expanded { display: none; }
+  .resident-table th, .resident-table td { padding: .5rem .35rem; }
+}

@@ -6,14 +6,15 @@ import {FaceRegistration} from './face';
 import {LocationCheck} from './location';
 import {AuthForm} from './auth';
 import {PostLocation} from './post-location';
+import {ResidentProfileForm, ResidentTable, type Member} from './residents';
+import {RegionFields, regionFromForm, type Region} from './region-fields';
 import {Attendance} from './attendance';
 import {ManagerNavigation, managerSections, type ManagerSection} from './manager-navigation';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const db = url && key ? createClient(url,key) : null;
-type Member = {rt_id:string; user_id:string; email:string; role:string};
-type RT = {id:string; name:string; zone:string};
+type RT = {id:string; name:string; zone:string; region:Region|null};
 
 
 export default function Home() {
@@ -46,7 +47,7 @@ export default function Home() {
   useEffect(()=>{
     if (!db || !session) return;
     let active=true;
-    db.from('communities').select('id,name,zone').order('name').then(({data,error})=>{
+    db.from('communities').select('id,name,zone,region').order('name').then(({data,error})=>{
       if(!active) return;
       if(error) return setNotice(error.message);
       setRooms(data || []);setRoomsLoaded(true);
@@ -66,6 +67,7 @@ export default function Home() {
   },[session,rt,revision]);
   const owner=members.some(m=>m.rt_id===rt && m.user_id===session?.user.id && m.role==='owner');
   const manager=owner || members.some(m=>m.rt_id===rt && m.user_id===session?.user.id && m.role==='manager');
+  const ownMember=members.find(member=>member.rt_id===rt && member.user_id===session?.user.id);
   const activeRoom=rooms.find(room=>room.id===rt);
   const zone=activeRoom?.zone || 'Asia/Jakarta';
   const displayTime=(value:string)=>new Date(value).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:zone});
@@ -108,13 +110,17 @@ export default function Home() {
   const intent=invitation?'join':path;
   const chooseRT=<label>RT aktif<select value={rt} onChange={e=>{setRT(e.target.value);setManagerSection('warga');setPersonalOpen(false);setMembers([]);setLink('');setNotice('')}}>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>;
   const personalAttendance=<>
+    {ownMember && <details key={rt} open={!ownMember.resident_name || !ownMember.home_address}>
+      <summary>Data warga saya</summary>
+      <ResidentProfileForm key={ownMember.user_id} db={db} rt={rt} member={ownMember} changed={()=>refresh(n=>n+1)}/>
+    </details>}
     {rt && (!manager || (managerSection==='rekap' && personalOpen)) && <section className="schedule-panel">
       <h2>Presensi ronda</h2>
       <p>Untuk absen, datang ke pos ronda. Kami akan memeriksa lokasi dan wajah Anda.</p>
       <LocationCheck key={rt} db={db} rt={rt} onAttendance={()=>refresh(n=>n+1)}/>
     </section>}
     {rt && <details><summary>Riwayat presensi saya</summary>{history.length?<ul>{history.map(h=><li key={h.id}>{h.post} · {h.status}<small>{displayTime(h.starts_at)}</small></li>)}</ul>:<p>Belum ada riwayat presensi.</p>}</details>}
-    {rt && (!manager || (managerSection==='rekap' && personalOpen)) && <FaceRegistration key={rt+':face:'+revision} db={db} rt={rt}/>}
+    {rt && (!manager || (managerSection==='rekap' && personalOpen)) && <FaceRegistration key={rt+':face:'+revision} db={db} rt={rt} profileComplete={Boolean(ownMember?.resident_name&&ownMember.home_address)}/>}
   </>;
   const rtMembership=<>
     {onboarding && !intent && <section className="role-picker"><h2>Pilih cara bergabung</h2>
@@ -130,9 +136,9 @@ export default function Home() {
       setMembers([]);setLink('');setRT(id);setInvitation('');setPath('');const current=new URL(location.href);current.searchParams.delete('undangan');window.history.replaceState(null,'',current);return 'Berhasil bergabung.';
     })}><label>Kode undangan<input name="code" value={invitation} onChange={e=>setInvitation(e.target.value.trim())} required/></label>{inviteName && <p>Undangan dari {inviteName}</p>}<button disabled={busy||!inviteName}>Gabung RT</button></form></details>}
     {roomsLoaded && (!onboarding || intent==='create') && <details open={onboarding}><summary>Daftarkan RT</summary><form onSubmit={submit(async data=>{
-      const {data:id,error}=await db.rpc('create_rt',{label:data.get('label')});if(error)throw error;
+      const {data:id,error}=await db.rpc('create_rt_with_region',{details:regionFromForm(data)});if(error)throw error;
       setMembers([]);setLink('');setRT(id);setPath('');return 'RT berhasil dibuat. Anda bisa mengundang warga sekarang.';
-    })}>{field('Nama RT dan wilayah','label')}{button('Buat RT')}</form></details>}
+    })}><RegionFields/>{button('Buat RT')}</form></details>}
   </>;
   const rtSettings=rt && <RTSettings key={rt} db={db} rt={rt} members={members} manager={manager} isOwner={owner} revision={revision} changed={()=>refresh(n=>n+1)}/>;
   async function signOut() {
@@ -170,15 +176,8 @@ export default function Home() {
       </div>
       <p role="status" className="manager-notice">{notice}</p>
       <div hidden={managerSection!=='warga'}>
-        <section><h2>Daftar warga</h2>
-          {members.length ? <ul>{members.map(member=><li key={member.user_id}>
-            {member.email}<small>{member.role==='owner'?'Pemilik RT':member.role==='manager'?'Pengurus':'Warga'}</small>
-          </li>)}</ul> : <p>Belum ada anggota.</p>}
-        </section>
-        <details><summary>Verifikasi identitas warga</summary><form onSubmit={submit(async data=>{
-      const {error}=await db.rpc('allow_face_registration',{target:rt,member:data.get('member')});
-      if(error)throw error;return 'Pendaftaran wajah warga diizinkan.';
-    })}><label>Warga yang diperiksa langsung<select name="member">{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>{button('Konfirmasi identitas warga')}</form></details><section><h2>Undang warga</h2><form onSubmit={submit(async data=>{
+        <ResidentTable key={rt} db={db} rt={rt} members={members} revision={revision} changed={()=>refresh(n=>n+1)}/>
+        <section><h2>Undang warga</h2><form onSubmit={submit(async data=>{
       const {data:code,error}=await db.rpc('invite_resident',{target:rt,recipient:data.get('email')});if(error)throw error;
       setLink(location.origin+'/?undangan='+code);return 'Bagikan tautan ke warga yang diundang.';
     })}>{field('Email warga','email','email')}{button('Buat undangan')}{link && <output>{link}</output>}</form></section>
@@ -192,6 +191,13 @@ export default function Home() {
       </div>
       <div hidden={managerSection!=='pengaturan'}>
         {activeRoom && <PostLocation key={rt} db={db} rt={rt} name={activeRoom.name}/>}
+        {activeRoom && <details key={rt}><summary>Wilayah RT</summary>
+          <form onSubmit={submit(async data=>{
+            const {error}=await db.rpc('save_rt_region',{target:rt,details:regionFromForm(data)});
+            if(error)throw error;
+            return 'Wilayah RT tersimpan.';
+          })}><RegionFields initial={activeRoom.region}/>{button('Simpan wilayah RT')}</form>
+        </details>}
         {rtSettings}
         {rtMembership}
       </div>

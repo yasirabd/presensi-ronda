@@ -18,6 +18,11 @@ const login=async(id,email,aal)=>db.query("select set_config('test.claims',$1,fa
 await login(a,'a@example.org','aal1');
 const rt=(await db.query("select public.create_rt('RT A') id")).rows[0].id;
 const otherRt=(await db.query("select public.create_rt('RT B') id")).rows[0].id;
+const region={rt:'005',rw:'002',province:{id:'31',name:'DKI Jakarta'},regency:{id:'31.71',name:'Jakarta Pusat'},district:{id:'31.71.01',name:'Gambir'},village:{id:'31.71.01.1001',name:'Gambir'}};
+const regionalRt=(await db.query('select public.create_rt_with_region($1) id',[region])).rows[0].id;
+assert.deepEqual((await db.query('select region from public.communities where id=$1',[regionalRt])).rows[0].region,region);
+await assert.rejects(db.query('select public.save_rt_region($1,$2)',[rt,{...region,regency:{id:'32.01',name:'Lain'}}]));
+await db.query('select public.save_resident_profile($1,$2,$3,$4)',[rt,a,'Nama Pengurus','Alamat Pengurus']);
 const invite=(await db.query("select public.invite_resident($1,'b@example.org') token",[rt])).rows[0].token;
 await login(b,'b@example.org','aal1');
 assert.equal((await db.query('select * from public.communities')).rows.length,0);
@@ -25,6 +30,11 @@ await db.query('select public.join_rt($1)',[invite]);
 assert.equal((await db.query('select * from public.communities')).rows.length,1);
 await assert.rejects(db.query('select public.join_rt($1)',[invite]));
 await assert.rejects(db.query("select public.invite_resident($1,'other@example.org')",[rt]));
+assert.equal((await db.query('select home_address from public.memberships where rt_id=$1 and user_id=$2',[rt,a])).rows.length,0);
+await assert.rejects(db.query('select public.resident_face_statuses($1)',[rt]));
+await assert.rejects(db.query('select public.save_rt_region($1,$2)',[rt,region]));
+await assert.rejects(db.query('select public.save_resident_profile($1,$2,$3,$4)',[rt,a,'Ubah','Alamat']));
+await assert.rejects(db.query('select public.save_resident_profile($1,$2,$3,$4)',[otherRt,b,'Ubah','Alamat']));
 await login(null,null,'aal1');
 await assert.rejects(db.query("select public.create_rt('RT C')"));
 console.log('Migration, tenant visibility, invite redemption, reuse rejection and role checks passed.');
@@ -67,7 +77,14 @@ const fallback=await db.query("select public.check_shift_location($1,0,.02,5,now
 assert.equal(fallback.rows[0].result.status,'inside');
 console.log('Location cases passed');
 await login(a,'a@example.org','aal1');
+await assert.rejects(db.query('select public.allow_face_registration($1,$2)',[rt,b]),/Lengkapi data warga/);
+await login(b,'b@example.org','aal1');
+await db.query('select public.save_resident_profile($1,$2,$3,$4)',[rt,b,'Warga Demo','Gang Demo 10']);
+await login(a,'a@example.org','aal1');
+assert.equal((await db.query('select home_address from public.memberships where rt_id=$1 and user_id=$2',[rt,b])).rows[0].home_address,'Gang Demo 10');
+await db.query('select public.save_resident_profile($1,$2,$3,$4)',[rt,b,'Warga Demo','Gang Demo 12']);
 await db.query('select public.allow_face_registration($1,$2)',[rt,b]);
+assert.equal((await db.query('select status from public.resident_face_statuses($1) where user_id=$2',[rt,b])).rows[0].status,'approved');
 await login(b,'b@example.org','aal1');
 const op=async fields=>{
  const payload=JSON.stringify({rt,user:b,expires:Math.floor(Date.now()/1000)+60,...fields});
@@ -94,7 +111,11 @@ await op({action:'verify',shift:retryProof.shift_id,session:retryProof.session_i
 assert.equal((await walkIn(rt,.02)).status,'already_recorded');
 await login(a,'a@example.org','aal1');
 assert.equal((await report()).find(r=>r.id===active).status,'Hadir (wajah dan lokasi)');
-assert.equal((await report()).find(r=>r.id===retryProof.shift_id).status,'Hadir (wajah dan lokasi)');
+const walkInRow=(await report()).find(r=>r.id===retryProof.shift_id);
+assert.equal(walkInRow.status,'Hadir (wajah dan lokasi)');
+assert.equal(walkInRow.resident_name,'Warga Demo');
+assert.equal('home_address' in walkInRow,false);
+assert.equal('email' in walkInRow,false);
 
 await login(b,'b@example.org','aal1');
 await db.query('select public.withdraw_face($1)',[rt]);
