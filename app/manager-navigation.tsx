@@ -1,11 +1,9 @@
 import {useRef, useState} from 'react';
 
 export const managerSections = [
-  {id:'jadwal', label:'Jadwal ronda'},
-  {id:'warga', label:'Warga & undangan'},
-  {id:'pos', label:'Lokasi pos'},
-  {id:'rekap', label:'Rekap presensi'},
-  {id:'presensi', label:'Presensi saya'},
+  {id:'jadwal', label:'Jadwal'},
+  {id:'warga', label:'Warga'},
+  {id:'rekap', label:'Presensi'},
   {id:'pengaturan', label:'Pengaturan RT'},
 ] as const;
 

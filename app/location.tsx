@@ -3,9 +3,9 @@ import {FaceCamera} from './face';
 import {useState} from 'react';
 import type {SupabaseClient} from '@supabase/supabase-js';
 
-function readPosition() {
+export function readPosition() {
   return new Promise<GeolocationPosition>((resolve,reject)=>{
-    if (!navigator.geolocation) return reject(new Error('Lokasi tidak tersedia. Hubungi pengurus.'));
+    if (!navigator.geolocation) return reject(new Error('Lokasi tidak tersedia di browser ini.'));
     navigator.geolocation.getCurrentPosition(resolve,error=>{
       const message = error.code===1
         ? 'Izinkan akses lokasi di pengaturan browser, lalu coba lagi.'

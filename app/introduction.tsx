@@ -44,7 +44,7 @@ export function Introduction() {
           <ol>
             <li><strong>Buat RT.</strong> Setelah masuk, pilih Daftarkan RT baru. Isi nama RT, lalu pilih Buat RT.</li>
             <li><strong>Undang warga.</strong> Di menu Undang warga, buat tautan untuk email warga dan bagikan. Setelah warga bergabung, periksa identitasnya di menu Verifikasi identitas warga.</li>
-            <li><strong>Atur giliran.</strong> Simpan koordinat dan radius di Atur lokasi pos. Di Jadwalkan giliran, pilih warga, waktu jaga, dan gunakan nama pos yang sama.</li>
+            <li><strong>Atur giliran.</strong> Saat berada di pos ronda, buka Pengaturan RT dan pilih Gunakan lokasi sekarang, lalu simpan. Di menu Jadwal, pilih warga dan waktu jaga. Nama pos mengikuti nama RT.</li>
             <li><strong>Lihat kehadiran.</strong> Buka Rekap presensi untuk memeriksa siapa yang hadir atau mengunduh rekap CSV.</li>
           </ol>
         </details>

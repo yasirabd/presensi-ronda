@@ -175,3 +175,10 @@ body:has(.manager-layout) header { background: var(--workspace-sidebar); }
   .manager-sidebar { position: sticky; top: 0; z-index: 2; }
   .manager-menu[data-open=true] { max-height: calc(100dvh - 5rem); overflow-y: auto; overscroll-behavior: contain; }
 }
+
+.schedule-post { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: center; margin-block-end: .75rem; }
+.schedule-post p { margin: 0; }
+.schedule-post strong { margin-inline-start: .25rem; }
+.schedule-post button { width: auto; padding-inline: .25rem; }
+.location-capture { width: auto; background: var(--workspace-selected); color: var(--workspace-accent); border-color: var(--workspace-border); padding-inline: 1rem; }
+.location-coordinates { margin: 0; font-variant-numeric: tabular-nums; }
