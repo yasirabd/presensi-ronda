@@ -6,3 +6,7 @@ node_modules
 face/.venv
 face/models/*.onnx
 *.tsbuildinfo
+dist
+.expo
+android
+ios

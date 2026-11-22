@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Ronda Pak",
+    "slug": "ronda-pak",
+    "version": "0.1.0",
+    "scheme": "rondapak",
+    "userInterfaceStyle": "automatic",
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./public/ronda-pak-owl.png"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "root": "./routes"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Izinkan Ronda Pak menggunakan kamera untuk mengambil foto presensi.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Izinkan Ronda Pak memeriksa lokasi saat Anda melakukan presensi."
+        }
+      ],
+      "expo-secure-store",
+      "expo-font"
+    ],
+    "icon": "./public/ronda-pak-owl.png"
+  }
+}

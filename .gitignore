@@ -8,3 +8,6 @@ face/.venv/
 face/models/*.onnx
 __pycache__/
 face/models/*.tmp
+
+.expo/
+dist/

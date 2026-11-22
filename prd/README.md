@@ -17,11 +17,15 @@ Pada uji Chromium dengan delapan anggota demo, formulir undangan berada di bawah
 
 Tindakan **Undang warga** dan daftar **Undangan aktif** berada di bagian atas menu Warga. Pengurus dapat menyalin atau membagikan tautan lewat chat pribadi WhatsApp dan mencabut undangan selama masih aktif. Setiap tautan berlaku dua hari dan hanya bisa digunakan dengan email penerima.
 
+### Pendaftaran pengurus dari beranda
+
+Tindakan utama **Daftarkan RT** membuka formulir email dan kata sandi. Dalam pilot, pendaftar menyatakan sendiri bahwa ia pengurus. Setelah email dikonfirmasi, aplikasi langsung membuka **Siapkan RT Anda** untuk mengisi RT, RW, dan wilayah. Saat ruang RT disimpan, hak pengurus berlaku di ruang tersebut. Tombol **Masuk** dipakai oleh warga dan pengurus yang sudah punya akun.
+
 ### Undangan melalui WhatsApp
 
-Pengurus mengisi nama dan nomor WhatsApp, lalu mengirim tautan pribadi ke nomor warga. Tautan berlaku dua hari. Untuk akun baru, tautan membuka satu formulir berisi nama, nomor WhatsApp, alamat rumah, email, dan kata sandi. Tautan konfirmasi email membawa warga kembali langsung ke kamera. Nama, nomor WhatsApp, dan alamat yang sudah diisi dipulihkan dari draf terenkripsi yang terikat pada email dan undangan. Kata sandi dikelola oleh autentikasi dan tidak dimasukkan ke draf. Warga yang sudah punya akun masuk lalu mengisi profilnya sekali.
+Pengurus mengisi nama dan nomor WhatsApp, lalu mengirim tautan pribadi ke nomor warga. Tautan berlaku dua hari. Aplikasi memeriksa tautan sebelum menampilkan formulir. Untuk akun baru, tautan aktif membuka satu halaman berisi formulir nama, nomor WhatsApp, alamat rumah, email, dan kata sandi, beserta kamera. Warga menekan **Daftar**, lalu mengonfirmasi email dari perangkat mana pun. Setelah konfirmasi, pengajuan langsung masuk ke pengurus. Draf privat terikat pada email dan undangan. Supabase Auth mengelola kata sandi. Warga yang sudah punya akun terkonfirmasi dapat masuk dan mengirim pengajuan dari satu halaman.
 
-Keanggotaan aktif setelah pengurus memeriksa identitas dan memberi satu persetujuan pada menu Warga. Jika warga menyertakan wajah, persetujuan itu juga mengaktifkan templat wajah. Warga dapat mengajukan pendaftaran tanpa wajah dan memilih presensi manual. Data wajah yang belum disetujui disimpan sebagai templat terenkripsi, tersedia hanya untuk proses verifikasi, dan dihapus ketika pengajuan dibatalkan atau undangan kedaluwarsa dibersihkan. Nomor WhatsApp warga tersimpan bersama profil RT dan hanya tersedia bagi warga yang bersangkutan serta pengurus RT-nya.
+Keanggotaan aktif setelah pengurus memeriksa identitas dan memberi satu persetujuan pada menu Warga. Jika warga menyertakan wajah, persetujuan itu juga mengaktifkan templat wajah. Warga yang melewati kamera dapat mendaftarkan wajah setelah disetujui pengurus dan sebelum presensi mandiri pertama. Presensi manual tetap tersedia. Foto diproses di memori dan templat wajah disimpan terenkripsi. Draf dihapus setelah konfirmasi, pencabutan atau kedaluwarsa undangan, dengan masa berlaku paling lama dua hari. Templat pengajuan dihapus jika pengajuan dibatalkan atau undangan kedaluwarsa. Nomor WhatsApp warga tersimpan bersama profil RT dan hanya tersedia bagi warga yang bersangkutan serta pengurus RT-nya.
 
 Undangan lama yang ditujukan ke email tetap dapat digunakan selama masih aktif.
 
@@ -134,7 +138,7 @@ Antarmuka warga mengutamakan satu tindakan utama per layar. Nama RT dan wilayah 
 
 ### Rencana pengembangan MVP
 
-Stack yang diusulkan ialah Next.js dan TypeScript untuk web serta API, Tailwind dan shadcn/ui dengan token desain terpusat, Supabase Postgres serta Auth, dan Playwright untuk pengujian alur. Tentukan metode masuk dan pemulihan akses sebelum irisan pertama. Pilihan penyedia wajah mengikuti uji kelayakan. Anggaran dan tenggat tetap menunggu keputusan pengurus.
+Aplikasi memakai Expo Router, React Native, React Native Web, Zustand, dan TypeScript. Design system Owl mengatur tema siang dan malam, font Nunito, kontrol sentuh, dan penggunaan maskot. Supabase menangani autentikasi dan data multi-RT. API Node menjalankan verifikasi wajah Python di server.
 
 | Urutan | Hasil yang dapat didemokan | Dependensi dan bukti selesai |
 | --- | --- | --- |

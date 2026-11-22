@@ -23,9 +23,15 @@ Catatan kehadiran warga yang dibuat setelah pemeriksaan wajah dan lokasi pos ron
 **Pengurus RT**
 Anggota yang mengelola data warga, undangan, pengaturan pos, dan rekap presensi untuk RT-nya.
 
+**Pendaftaran RT**
+Penyiapan ruang RT oleh orang yang menyatakan dirinya pengurus. Setelah email dikonfirmasi dan wilayah RT disimpan, pendaftar menjadi pengurus di ruang tersebut.
+
 **Undangan warga**
 Tautan pribadi yang dikirim pengurus ke nomor WhatsApp penerima agar ia dapat mengajukan keanggotaan di RT tersebut.
 
 
+**Draf pendaftaran**
+Data yang diisi dari undangan warga dan masih menunggu konfirmasi email pemohon.
+
 **Pengajuan warga**
-Data pendaftaran yang dikirim dari undangan. Keanggotaan RT dimulai ketika pengurus mengonfirmasi identitas pemohon.
+Pendaftaran dengan email terkonfirmasi yang menunggu keputusan pengurus. Keanggotaan RT dimulai setelah pengurus menyetujui pengajuan.
