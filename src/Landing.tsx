@@ -32,8 +32,8 @@ export default function Landing({ onRegister, onLogin }: { onRegister: () => voi
     contentContainerStyle={{paddingBottom:48+insets.bottom}}>
     <VillageStage actions={depart=><View style={{gap:12,marginTop:20}}>
       <View style={s.actions}>
-        <Button label="Daftarkan RT" onPress={()=>depart(onRegister)}/>
-        <Button label="Masuk" secondary onPress={()=>depart(onLogin)}/>
+        <Button nativeID="village-signup" label="Daftarkan RT" onPress={event=>depart("signup",event,onRegister)}/>
+        <Button nativeID="village-login" label="Masuk" secondary onPress={event=>depart("login",event,onLogin)}/>
       </View>
       <Text style={[s.note,{color:'#e4e9f2'}]}>Warga baru? Buka tautan undangan dari pengurus RT.</Text>
     </View>}>

@@ -62,7 +62,7 @@ export default function RondaApp({path}: {path: string}) {
       <Button secondary label="Keluar" onPress={logout}/>
     </Card>}
     {!!notice && <Body>{notice}</Body>}
-    {w.error ? <Card><Body>{w.error}</Body><Button label="Coba lagi" onPress={w.refresh}/></Card>
+    {w.error ? <Card><Body>{w.error}</Body><Button label="Coba lagi" onPress={()=>void w.refresh()}/></Card>
       : room && user ? manager && !personal
         ? <Manager key={room.id+user} rt={room.id} userId={user} name={room.name} owner={room.role==='owner'}/>
         : <Resident key={room.id+user} rt={room.id} userId={user}/>

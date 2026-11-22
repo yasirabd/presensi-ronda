@@ -30,7 +30,7 @@ export default function Access(props:AccessProps){
       if(error)throw error;
       props.onDone(room);
     }}/>
-    <Button secondary label="Kembali" onPress={props.onDone}/>
+    <Button secondary label="Kembali" onPress={()=>props.onDone()}/>
   </Card></Screen>;
   if(props.mode==='join')return props.params.wa==='1'
     ? <WhatsAppJoin code={props.params.undangan||''} requested={props.params.pendaftaran} onDone={props.onDone}/>
@@ -144,7 +144,7 @@ function Auth({initial,params,onDone,onRegister,onLogin}:AccessProps&{initial:'l
   if(wa&&mode!=='reset'&&status!=='active')return <NightLogin><Card><Title>{status==='loading'?'Memeriksa undangan…':status==='error'?'Tautan belum bisa diperiksa':'Undangan sudah tidak berlaku'}</Title>
     {status==='invalid'&&<Body>Minta tautan baru dari pengurus RT.</Body>}
     {status==='error'&&<Button label="Coba lagi" onPress={()=>retry(n=>n+1)}/>}
-    {status!=='loading'&&<Button secondary label="Kembali ke Ronda Pak" onPress={onDone}/>}
+    {status!=='loading'&&<Button secondary label="Kembali ke Ronda Pak" onPress={()=>onDone()}/>}
   </Card></NightLogin>;
   const form = <Card>
     <Title>{sent?'Periksa email Anda':mode==='signup'&&(code||wa)?'Pendaftaran warga':titles[mode]}</Title>

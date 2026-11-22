@@ -1,7 +1,7 @@
 import { useState, type PropsWithChildren } from 'react';
 import {
   Pressable, ScrollView, StyleSheet, Text, TextInput,
-  useColorScheme, View, type TextInputProps,
+  useColorScheme, View, type TextInputProps, type GestureResponderEvent,
 } from 'react-native';
 
 import { palette } from './theme/colors';
@@ -38,12 +38,12 @@ export function Body({ children }: PropsWithChildren) {
   return <Text style={[styles.body, { color: c.textSecondary }]}>{children}</Text>;
 }
 
-type ButtonProps = { label: string; onPress: () => void; secondary?: boolean; quiet?: boolean; disabled?: boolean };
+type ButtonProps = { label: string; nativeID?: string; onPress: (event: GestureResponderEvent) => void; secondary?: boolean; quiet?: boolean; disabled?: boolean };
 
-export function Button({ label, onPress, secondary, quiet, disabled }: ButtonProps) {
+export function Button({ label, nativeID, onPress, secondary, quiet, disabled }: ButtonProps) {
   const c = useOwl();
   const [focused, setFocused] = useState(false);
-  return <Pressable accessibilityRole="button" accessibilityState={{ disabled: !!disabled }}
+  return <Pressable nativeID={nativeID} accessibilityRole="button" accessibilityState={{ disabled: !!disabled }}
     disabled={disabled} onPress={onPress} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
     style={({ pressed }) => [styles.button, {
       backgroundColor: quiet ? (pressed ? c.accentSoft : 'transparent') : disabled || secondary ? c.surface : c.accent,

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type PropsWithChildren } from 'react';
 import { AccessibilityInfo, Animated, AppState, Easing, Platform, Pressable, ScrollView,
-  Image, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+  Image, StyleSheet, Text, type GestureResponderEvent, useWindowDimensions, View } from 'react-native';
 import { useAudioPlayer } from 'expo-audio';
-import { useFocusEffect } from 'expo-router';
+import { Link, usePathname, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
@@ -113,8 +113,8 @@ function SkyDrift({running}: {running:boolean}) {
   </Animated.View>;
 }
 
-function Landscape({width,height,wide,camera,wind,running}: {
-  width:number; height:number; wide:boolean; running:boolean; camera:Animated.Value; wind:Animated.Value;
+function Landscape({width,height,wide,camera,wind,running,terrace}: {
+  width:number; height:number; wide:boolean; running:boolean; terrace:boolean; camera:Animated.Value; wind:Animated.Value;
 }) {
   const w=Math.max(width,height*1.5), h=w/1.5;
   const anchorX=.66, anchorY=.51;
@@ -142,6 +142,14 @@ function Landscape({width,height,wide,camera,wind,running}: {
         <Image source={picture} resizeMode="stretch" fadeDuration={0} style={{width:'100%',height:'100%'}}/>
         <Irrigation running={running}/>
         <SkyDrift running={running}/>
+        {terrace && <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill,{
+          opacity:wind.interpolate({inputRange:[0,.25,.6,1],outputRange:[0,.78,.48,0]}),
+          transform:[{translateY:wind.interpolate({inputRange:[0,1],outputRange:[0,-h*.013]})}],
+        }]}>
+          <Svg width="100%" height="100%" viewBox="0 0 1536 1024">
+            <Path d="M951 646q-4-6 0-12t-1-10m8 21q4-5 1-10" stroke="#ffefd7" strokeWidth="2.6" strokeLinecap="round" fill="none"/>
+          </Svg>
+        </Animated.View>}
         <Animated.View style={[StyleSheet.absoluteFill,{opacity:wind.interpolate({inputRange:[0,.3,.62,1],outputRange:[.16,.75,.24,.16]})}]}>
           <Svg width="100%" height="100%" viewBox="0 0 600 400">
             {[[105,48],[149,31],[202,86],[246,32],[375,58],[411,27],[487,77]].map(([x,y])=><Circle key={x} cx={x} cy={y} r=".8" fill="#f4ebd7"/>)}
@@ -179,19 +187,30 @@ function Landscape({width,height,wide,camera,wind,running}: {
   </View>;
 }
 
+type Entry = 'login' | 'signup';
+type Journey = {entry:Entry; keyboard:boolean; animate:boolean; arriving:boolean};
+let journey:Journey|null=null;
+
+function keyboardPress(event:GestureResponderEvent) {
+  const input=event.nativeEvent as unknown as {key?:string; detail?:number};
+  return Platform.OS==='web' && (Boolean(input.key) || input.detail===0);
+}
+
 type StageProps = PropsWithChildren<{
   terrace?:boolean;
-  actions?:(depart:(navigate:()=>void)=>void)=>React.ReactNode;
+  actions?:(depart:(entry:Entry,event:GestureResponderEvent,navigate:()=>void)=>void)=>React.ReactNode;
 }>;
 
 export function VillageStage({children,terrace=false,actions}:StageProps) {
   const {width,height,fontScale}=useWindowDimensions();
+  const path=usePathname();
   const wide=width/Math.max(1,fontScale)>=820;
   const safe=useSafeAreaInsets();
   const {visible,running,paused,toggle,reduced}=useSceneMotion();
-  const camera=useRef(new Animated.Value(terrace?1:0)).current;
+  const camera=useRef(new Animated.Value(terrace && !journey?.arriving ? 1 : 0)).current;
   const wind=useRef(new Animated.Value(0)).current;
-  const departure=useRef<null|(()=>void)>(null);
+  const blockMotion=useRef(paused || reduced);
+  blockMotion.current=paused || (Platform.OS==='web' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false);
   const stageHeight=wide?Math.max(570,Math.min(height,900)):Math.max(460,Math.min(height*.78,675));
   const imageHeight=wide?stageHeight:safe.top+Math.min(stageHeight*.78,width*.89+52);
   useEffect(()=>{
@@ -201,26 +220,46 @@ export function VillageStage({children,terrace=false,actions}:StageProps) {
     return ()=>loop.stop();
   },[running,wind]);
   useFocusEffect(useCallback(()=>{
-    camera.setValue(terrace?1:0);
-    return ()=>{departure.current=null;camera.stopAnimation();};
+    const trip=journey;
+    const arrival=terrace && trip?.arriving;
+    const returning=!terrace && trip && !trip.arriving;
+    const target=terrace?1:0;
+    let frame:number|undefined;
+    if ((arrival || returning) && trip) {
+      trip.arriving=false;
+      if (returning) journey=null;
+      if (trip.animate && !blockMotion.current && !trip.keyboard) {
+        camera.setValue(1-target);
+        Animated.timing(camera,{toValue:target,duration:arrival && trip.entry==='signup'?250:200,
+          easing:Easing.bezier(.23,1,.32,1),useNativeDriver:driver,isInteraction:false}).start();
+      } else camera.setValue(target);
+      if (Platform.OS==='web' && (returning || trip.keyboard)) {
+        frame=requestAnimationFrame(()=>{
+          const control=returning ? document.getElementById('village-'+trip.entry)
+            : document.querySelector<HTMLInputElement>('input[autocomplete="email"]');
+          control?.focus({preventScroll:true});
+        });
+      }
+    } else camera.setValue(target);
+    return ()=>{
+      camera.stopAnimation();
+      if(frame!==undefined) cancelAnimationFrame(frame);
+    };
   },[camera,terrace]));
-  useEffect(()=>{
-    if(!running && departure.current){
-      const navigate=departure.current;departure.current=null;camera.stopAnimation();navigate();
-    }
-  },[running,camera]);
-  function depart(navigate:()=>void){
-    if(departure.current)return;
-    if(!running){navigate();return;}
-    departure.current=navigate;
-    Animated.timing(camera,{toValue:1,duration:900,easing:Easing.inOut(Easing.cubic),useNativeDriver:driver,isInteraction:false})
-      .start(({finished})=>{
-        if(finished && departure.current){departure.current=null;navigate();}
-      });
+  function depart(entry:Entry,event:GestureResponderEvent,navigate:()=>void){
+    if(journey?.arriving)return;
+    journey={entry,keyboard:keyboardPress(event),animate:running,arriving:true};
+    navigate();
   }
+  function home(event:GestureResponderEvent){
+    const keyboard=keyboardPress(event);
+    journey={entry:journey?.entry ?? (path==='/daftar'?'signup':'login'),keyboard,animate:running,arriving:false};
+  }
+  const brand=<><Image source={require('../public/ronda-pak-owl.png')} style={{width:36,height:36}}/>
+    <Text style={[type.wordmark,{color:'white'}]}>Ronda Pak</Text></>;
   return <View style={{backgroundColor:nightGround,minHeight:stageHeight}}>
     <View style={{position:'absolute',top:0,width:'100%',height:imageHeight,overflow:'hidden'}}>
-      <Landscape width={width} height={imageHeight} wide={wide} camera={camera} wind={wind} running={running}/>
+      <Landscape width={width} height={imageHeight} wide={wide} camera={camera} wind={wind} running={running} terrace={terrace}/>
       <View pointerEvents="none" style={StyleSheet.absoluteFill}>
         <Svg width="100%" height="100%">
           <Defs>
@@ -243,8 +282,8 @@ export function VillageStage({children,terrace=false,actions}:StageProps) {
       </View>
     </View>
     <View style={[styles.header,{paddingTop:safe.top+12,paddingLeft:safe.left+(wide?48:18),paddingRight:safe.right+(wide?48:18)}]}>
-      <View style={styles.brand}><Image source={require('../public/ronda-pak-owl.png')} style={{width:36,height:36}}/>
-        <Text style={[type.wordmark,{color:'white'}]}>Ronda Pak</Text></View>
+      {terrace ? <Link href="/" dismissTo asChild><Pressable accessibilityRole="link" accessibilityLabel="Kembali ke beranda Ronda Pak"
+        onPress={home} style={{...styles.brand,minHeight:44}}>{brand}</Pressable></Link> : <View style={styles.brand}>{brand}</View>}
       <View style={{flexDirection:'row',gap:4}}><OwlSound visible={visible}/>
       {!reduced && <Pressable accessibilityLabel={paused?'Putar animasi':'Jeda animasi'} accessibilityRole="button" onPress={toggle} style={styles.control}>
         <Ionicons name={paused?'play':'pause'} size={15} color="white"/><Text style={[type.label,{color:'white'}]}>{paused?'Putar':'Jeda'}</Text>
@@ -254,7 +293,7 @@ export function VillageStage({children,terrace=false,actions}:StageProps) {
       paddingTop:wide?24:imageHeight*(terrace?.69:.62),paddingBottom:wide?48:24,
       paddingLeft:safe.left+(wide?Math.min(88,width*.065):16),paddingRight:safe.right+16}}>
       <Animated.View style={{width:'100%',maxWidth:wide?(terrace?410:440):540,
-        opacity:terrace?1:camera.interpolate({inputRange:[0,.5,1],outputRange:[1,0,0]})}}>
+        opacity:terrace?camera.interpolate({inputRange:[0,1],outputRange:[.86,1]}):1}}>
         {children}{actions?.(depart)}
       </Animated.View>
     </View>
