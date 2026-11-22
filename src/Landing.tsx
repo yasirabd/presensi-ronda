@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from './ui';
 
@@ -28,8 +29,15 @@ export default function Landing({ onRegister, onLogin }: { onRegister: () => voi
   const insets = useSafeAreaInsets();
   const wide = width / Math.max(1, fontScale) >= 820;
   const [openGuide, setOpenGuide] = useState<number | null>(null);
+  useFocusEffect(useCallback(() => {
+    if (Platform.OS !== 'web') return;
+    const canvas = document.documentElement;
+    const previousColor = canvas.style.backgroundColor;
+    canvas.style.backgroundColor = nightGround;
+    return () => { canvas.style.backgroundColor = previousColor; };
+  }, []));
   return <ScrollView contentInsetAdjustmentBehavior="never" style={{ flex: 1, backgroundColor: c.bg }}
-    contentContainerStyle={{paddingBottom:48+insets.bottom}}>
+    contentContainerStyle={{flexGrow:1,backgroundColor:c.bg,paddingBottom:48+insets.bottom}}>
     <VillageStage actions={depart=><View style={{gap:12,marginTop:20}}>
       <View style={s.actions}>
         <Button nativeID="village-signup" label="Daftarkan RT" onPress={event=>depart("signup",event,onRegister)}/>
@@ -46,7 +54,7 @@ export default function Landing({ onRegister, onLogin }: { onRegister: () => voi
         <View style={s.questions}>{guides.map((guide, index) => {
           const expanded = openGuide === index;
           return <View key={guide.title} style={[s.question, { borderBottomColor: c.border }]}>
-            <Pressable accessibilityRole="button" accessibilityState={{ expanded }}
+            <Pressable accessibilityRole="button" accessibilityState={{ expanded }} aria-expanded={expanded}
               onPress={() => setOpenGuide(expanded ? null : index)}
               style={({ pressed }) => [s.trigger, { opacity: pressed ? 0.65 : 1 }]}>
               <Text style={[s.triggerText, { color: c.text }]}>{guide.title}</Text>
