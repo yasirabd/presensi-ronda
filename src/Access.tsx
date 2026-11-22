@@ -158,7 +158,7 @@ function Auth({initial,params,onDone,onRegister,onLogin}:AccessProps&{initial:'l
       {google&&(!manager||mode==='login')&&(mode==='login'||mode==='signup')&&<Button secondary disabled={busy} label="Lanjutkan dengan Google" onPress={googleLogin}/>}
       {combined&&<ProfileFields profile={profile} change={setProfile}/>}
       {mode!=='reset'&&<Field label="Alamat email" value={email} autoComplete="email" error={invalid==='email'?message:undefined} onChangeText={value=>{setEmail(value);if(invalid==='email'){setInvalid(null);setMessage('')}}} keyboardType="email-address"/>}
-      {mode!=='resend'&&mode!=='forgot'&&<Field label={mode==='reset'?'Kata sandi baru':'Kata sandi'} secureTextEntry value={password} autoComplete={mode==='login'?'current-password':'new-password'} error={invalid==='password'?message:undefined} onChangeText={value=>{setPassword(value);if(invalid==='password'){setInvalid(null);setMessage('')}}}/>}
+      {mode!=='resend'&&mode!=='forgot'&&<Field key={mode} label={mode==='reset'?'Kata sandi baru':'Kata sandi'} secureTextEntry value={password} autoComplete={mode==='login'?'current-password':'new-password'} error={invalid==='password'?message:undefined} onChangeText={value=>{setPassword(value);if(invalid==='password'){setInvalid(null);setMessage('')}}}/>}
       {(mode==='reset'||mode==='signup')&&<Body>Gunakan minimal 8 karakter.</Body>}
       {combined&&<FaceField face={face} change={setFace}/>}
     </>}

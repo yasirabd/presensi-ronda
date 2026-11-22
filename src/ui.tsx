@@ -4,6 +4,7 @@ import {
   useColorScheme, View, type TextInputProps, type GestureResponderEvent,
 } from 'react-native';
 
+import { Ionicons } from '@expo/vector-icons';
 import { palette } from './theme/colors';
 import { type } from './theme/typography';
 import { space, size, radius } from './theme/layout';
@@ -59,20 +60,33 @@ type FieldProps = Pick<TextInputProps, 'value' | 'onChangeText' | 'secureTextEnt
 export function Field({ label, error, keyboardType, secureTextEntry, multiline, ...input }: FieldProps) {
   const c = useOwl();
   const [focused, setFocused] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const rawInput = secureTextEntry || keyboardType === 'email-address' || keyboardType === 'url';
   return <View style={styles.field}>
     <Text style={[styles.label, { color: c.text }]}>{label}</Text>
-    <TextInput {...input} accessibilityLabel={label} keyboardType={keyboardType} secureTextEntry={secureTextEntry}
-      autoCapitalize={rawInput ? 'none' : 'sentences'} autoCorrect={rawInput ? false : undefined}
-      multiline={multiline} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-      selectionColor={c.accent} placeholderTextColor={c.textSecondary}
-      style={[styles.input, multiline && styles.multiline, { color: c.text, backgroundColor: c.surfaceRaised,
-        borderColor: error ? c.danger : focused ? c.accent : c.controlBorder }]} />
+    <View>
+      <TextInput {...input} accessibilityLabel={label} keyboardType={keyboardType} secureTextEntry={secureTextEntry && !passwordVisible}
+        autoCapitalize={rawInput ? 'none' : 'sentences'} autoCorrect={rawInput ? false : undefined}
+        multiline={multiline} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+        selectionColor={c.accent} placeholderTextColor={c.textSecondary}
+        style={[styles.input, multiline && styles.multiline, secureTextEntry && { paddingRight: 50 }, { color: c.text, backgroundColor: c.surfaceRaised,
+          borderColor: error ? c.danger : focused ? c.accent : c.controlBorder }]} />
+      {secureTextEntry && <Pressable accessibilityRole="button"
+        accessibilityLabel={passwordVisible ? 'Sembunyikan kata sandi' : 'Lihat kata sandi'}
+        onPress={() => setPasswordVisible(visible => !visible)}
+        style={styles.passwordToggle}>
+        <Ionicons name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} size={20} color={c.textSecondary}/>
+      </Pressable>}
+    </View>
     {!!error && <Text accessibilityRole="alert" style={[type.callout, {color:c.danger}]}>{error}</Text>}
   </View>;
 }
 
 const styles = StyleSheet.create({
+  passwordToggle: {
+    position: 'absolute', top: 0, bottom: 0, right: 0, width: 48,
+    alignItems: 'center', justifyContent: 'center',
+  },
   screen: { flexGrow: 1, alignItems: 'center' },
   column: { width: '100%', maxWidth: 720, gap: space.md },
   card: { borderWidth: size.hairline, borderRadius: radius.card, padding: space.lg, gap: space.md },
