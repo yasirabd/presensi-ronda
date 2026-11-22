@@ -21,14 +21,39 @@ export function JoinRegistration({db,code,onExit}:{db:SupabaseClient;code:string
       setLoading(false);
       return;
     }
-    db.rpc('registration_invite',{code}).then(({data,error})=>{
-      if(!current)return;
-      setInvitation(data);
-      if(data?.submitted)setStep('done');
-      else if(data?.address)setStep('face');
-      if(error)setMessage('Undangan belum dapat dimuat. Muat ulang halaman untuk mencoba lagi.');
-      setLoading(false);
-    });
+    async function load() {
+      try {
+        const {data,error}=await db.rpc('registration_invite',{code});
+        if(!current)return;
+        if(error)throw error;
+        if(data && !data.address){
+          const {data:{session}}=await db.auth.getSession();
+          if(session?.user.user_metadata.ronda_join_draft){
+            const response=await fetch('/api/join-draft',{method:'POST',headers:{
+              'Content-Type':'application/json',Authorization:'Bearer '+session.access_token
+            },body:JSON.stringify({code})});
+            if(response.ok){
+              void db.auth.updateUser({data:{ronda_join_draft:null}}).catch(()=>{});
+              const restored=await db.rpc('registration_invite',{code});
+              if(restored.error)throw restored.error;
+              if(current){setInvitation(restored.data);setStep('face');}
+              return;
+            }
+            if(response.status!==404 && response.status!==410)
+              throw new Error('Data pendaftaran belum dapat dimuat. Muat ulang halaman untuk mencoba lagi.');
+          }
+        }
+        if(!current)return;
+        setInvitation(data);
+        if(data?.submitted)setStep('done');
+        else if(data?.address)setStep('face');
+      } catch {
+        if(current)setMessage('Data pendaftaran belum dapat dimuat. Muat ulang halaman untuk mencoba lagi.');
+      } finally {
+        if(current)setLoading(false);
+      }
+    }
+    void load();
     return ()=>{current=false};
   },[db,code]);
 

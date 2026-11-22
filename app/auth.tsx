@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useState, type FormEvent} from 'react';
 import {usePathname} from 'next/navigation';
+import {whatsappNumber} from './whatsapp';
 import {Introduction} from './introduction';
 import type {SupabaseClient} from '@supabase/supabase-js';
 
@@ -13,8 +14,10 @@ export function AuthForm({db, invited, whatsappInvite, recovering, onReset}:{
 }) {
   const pathname=usePathname();
   const [choice,setChoice]=useState<Mode>(pathname==='/daftar'?'signup':'login');
+  const [profile,setProfile]=useState({name:'',phone:'',address:''});
   const [authLink,setAuthLink]=useState(false);
   const mode=recovering?'reset':choice;
+  const combined=whatsappInvite && mode==='signup';
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
   const [busy,setBusy]=useState(false);
@@ -81,15 +84,27 @@ export function AuthForm({db, invited, whatsappInvite, recovering, onReset}:{
         if(error)throw error;
         switchTo('login');onReset();
       } else if(mode==='signup'){
-        const {data,error}=await db.auth.signUp({email:address,password,options:{emailRedirectTo:redirect.href}});
+        let draft:string|undefined;
+        if(combined){
+          const phone=whatsappNumber(profile.phone);
+          const response=await fetch('/api/join-draft',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({code:redirect.searchParams.get('undangan'),email:address,...profile,phone})});
+          const result=await response.json();
+          if(!response.ok){setMessage(result.error);return;}
+          draft=result.draft;
+        }
+        const {data,error}=await db.auth.signUp({email:address,password,options:{
+          emailRedirectTo:redirect.href,...(draft?{data:{ronda_join_draft:draft}}:{})
+        }});
         if(error)throw error;
-        if(!data.session){setPassword('');setSent(true);setMessage('Buka tautan konfirmasi yang dikirim ke '+address+'. Jika belum tiba, periksa Spam atau minta tautan baru.');}
+        if(!data.session){setPassword('');setSent(true);setMessage(combined?'Buka tautan yang dikirim ke '+address+' untuk langsung lanjut ke kamera. Data yang sudah diisi akan terbawa.':'Buka tautan konfirmasi yang dikirim ke '+address+'. Jika belum tiba, periksa Spam atau minta tautan baru.');}
       } else {
         const {error}=await db.auth.signInWithPassword({email:address,password});
         if(error)throw error;
       }
     } catch(err) {
       const code=(err as {code?:string}).code;
+      if(combined && err instanceof Error && err.message.startsWith('Masukkan nomor WhatsApp')){setMessage(err.message);return;}
       setNeedsConfirmation(code==='email_not_confirmed' || (mode==='signup' && code==='over_email_send_rate_limit'));
       const errors:Record<string,string>={
         invalid_credentials:'Email atau kata sandi belum cocok. Coba lagi atau pilih Lupa kata sandi.',
@@ -102,26 +117,32 @@ export function AuthForm({db, invited, whatsappInvite, recovering, onReset}:{
     } finally {setBusy(false);}
   }
   if(pathname==='/' && !invited && !recovering && !authLink)return <Introduction/>;
-  return <div className="auth-layout"><aside className="auth-art" aria-label="Ilustrasi ronda malam">
+  return <div className={whatsappInvite?'auth-layout join-auth':'auth-layout'}>{!whatsappInvite && <aside className="auth-art" aria-label="Ilustrasi ronda malam">
     <div className="art-heading">Presensi<br/>ronda RT<span aria-hidden="true">.</span></div>
     <img src="/ronda-bersama.webp" width="1200" height="900" alt="Tiga bapak berkumpul di pos ronda kompleks perumahan."/>
-  </aside><section className="auth-card"><h1>{sent?'Periksa email Anda':titles[mode]}</h1>
-    {invited && !sent && mode!=='reset' && <p>{whatsappInvite?'Gunakan email Anda untuk melanjutkan pendaftaran warga.':'Masuk atau daftar dengan alamat email yang diundang pengurus.'}</p>}
+  </aside>}<section className={whatsappInvite?'auth-card join-registration':'auth-card'}><h1>{sent?'Periksa email Anda':combined?'Pendaftaran warga':titles[mode]}</h1>
+    {combined && !sent && <p>Isi data dan buat akun. Setelah email dikonfirmasi, lanjutkan ke kamera untuk mendaftarkan wajah.</p>}
+    {invited && !combined && !sent && mode!=='reset' && <p>{whatsappInvite?'Gunakan email Anda untuk melanjutkan pendaftaran warga.':'Masuk atau daftar dengan alamat email yang diundang pengurus.'}</p>}
     {mode==='forgot' && !sent && <p>Masukkan alamat email akun Anda. Kami akan mengirim tautan untuk mengganti kata sandi.</p>}
     <p role="status">{message}</p>
-    {googleEnabled && !sent && (mode==='login'||mode==='signup') && <>
+    {googleEnabled && !whatsappInvite && !sent && (mode==='login'||mode==='signup') && <>
       <button className="google-action" disabled={busy} onClick={googleLogin}>Lanjutkan dengan Google</button>
       <div className="email-divider">atau dengan email</div>
     </>}
     {!sent && <form onSubmit={submit}>
+      {combined && <>
+        <label>Nama warga<input required maxLength={120} autoComplete="name" value={profile.name} onChange={e=>setProfile({...profile,name:e.target.value})}/></label>
+        <label>Nomor WhatsApp<input type="tel" required maxLength={24} autoComplete="tel" value={profile.phone} onChange={e=>setProfile({...profile,phone:e.target.value})}/></label>
+        <label>Alamat rumah<textarea required rows={2} maxLength={300} autoComplete="street-address" value={profile.address} onChange={e=>setProfile({...profile,address:e.target.value})}/></label>
+      </>}
       {mode!=='reset' && <label>Alamat email<input type="email" autoComplete="email" required value={email} onChange={e=>{setEmail(e.target.value);if(needsConfirmation){setNeedsConfirmation(false);setMessage('');}}}/></label>}
       {mode!=='forgot' && mode!=='resend' && <label>{mode==='reset'?'Kata sandi baru':'Kata sandi'}<input type="password" autoComplete={mode==='login'?'current-password':'new-password'} minLength={mode==='login'?undefined:8} required value={password} onChange={e=>setPassword(e.target.value)}/>
         {mode!=='login' && <small>Gunakan minimal 8 karakter.</small>}</label>}
-      <button disabled={busy}>{busy?'Mohon tunggu…':actions[mode]}</button>
+      <button disabled={busy}>{busy?'Mohon tunggu…':combined?'Buat akun dan lanjut':actions[mode]}</button>
     </form>}
     {(needsConfirmation || (sent && (mode==='signup'||mode==='resend'))) && <button className="text-action" disabled={busy} onClick={()=>switchTo('resend')}>Kirim ulang konfirmasi</button>}
     {mode==='login' && <><button className="text-action" disabled={busy} onClick={()=>switchTo('forgot')}>Lupa kata sandi?</button>
       <button className="signup-action" disabled={busy} onClick={()=>switchTo('signup')}>Daftar akun baru</button></>}
-    {mode!=='login' && mode!=='reset' && <button className="text-action" disabled={busy} onClick={()=>switchTo('login')}>Kembali ke halaman masuk</button>}
+    {mode!=='login' && mode!=='reset' && <button className="text-action" disabled={busy} onClick={()=>switchTo('login')}>{combined&&!sent?'Sudah punya akun? Masuk':'Kembali ke halaman masuk'}</button>}
   </section></div>;
 }

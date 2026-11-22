@@ -227,3 +227,6 @@ textarea {
   .join-registration button { transition: transform 140ms cubic-bezier(.2,.65,.35,1); }
   .join-registration button:active:not(:disabled) { transform: scale(.985); }
 }
+
+.join-auth.auth-layout { display: block; padding-block: 0; }
+.join-auth .auth-card { width: 100%; max-width: 33rem; margin-inline: auto; }

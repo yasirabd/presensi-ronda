@@ -19,7 +19,7 @@ Tindakan **Undang warga** dan daftar **Undangan aktif** berada di bagian atas me
 
 ### Undangan melalui WhatsApp
 
-Pengurus mengisi nama dan nomor WhatsApp, lalu mengirim tautan pribadi ke nomor warga. Tautan berlaku dua hari. Warga membuka tautan, masuk atau mendaftar dengan emailnya sendiri, lalu meninjau nama dan nomor WhatsApp, mengisi alamat rumah, dan dapat langsung mendaftarkan wajah.
+Pengurus mengisi nama dan nomor WhatsApp, lalu mengirim tautan pribadi ke nomor warga. Tautan berlaku dua hari. Untuk akun baru, tautan membuka satu formulir berisi nama, nomor WhatsApp, alamat rumah, email, dan kata sandi. Tautan konfirmasi email membawa warga kembali langsung ke kamera. Nama, nomor WhatsApp, dan alamat yang sudah diisi dipulihkan dari draf terenkripsi yang terikat pada email dan undangan. Kata sandi dikelola oleh autentikasi dan tidak dimasukkan ke draf. Warga yang sudah punya akun masuk lalu mengisi profilnya sekali.
 
 Keanggotaan aktif setelah pengurus memeriksa identitas dan memberi satu persetujuan pada menu Warga. Jika warga menyertakan wajah, persetujuan itu juga mengaktifkan templat wajah. Warga dapat mengajukan pendaftaran tanpa wajah dan memilih presensi manual. Data wajah yang belum disetujui disimpan sebagai templat terenkripsi, tersedia hanya untuk proses verifikasi, dan dihapus ketika pengajuan dibatalkan atau undangan kedaluwarsa dibersihkan. Nomor WhatsApp warga tersimpan bersama profil RT dan hanya tersedia bagi warga yang bersangkutan serta pengurus RT-nya.
 
