@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type PropsWithChildren } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type PropsWithChildren } from 'react';
 import { AccessibilityInfo, Animated, AppState, Easing, Platform, Pressable, ScrollView,
   Image, StyleSheet, Text, type GestureResponderEvent, useWindowDimensions, View } from 'react-native';
 import { useAudioPlayer } from 'expo-audio';
@@ -224,6 +224,9 @@ type StageProps = PropsWithChildren<{
 export function VillageStage({children,terrace=false,actions}:StageProps) {
   const {width,height,fontScale}=useWindowDimensions();
   const path=usePathname();
+  const gradientId=useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const verticalShade=`village-vertical-${gradientId}`;
+  const copyShade=`village-copy-${gradientId}`;
   const wide=width/Math.max(1,fontScale)>=820;
   const safe=useSafeAreaInsets();
   const {visible,running,paused,toggle,reduced}=useSceneMotion();
@@ -233,6 +236,10 @@ export function VillageStage({children,terrace=false,actions}:StageProps) {
   blockMotion.current=paused || (Platform.OS==='web' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false);
   const stageHeight=wide?Math.max(570,Math.min(height,900)):Math.max(460,Math.min(height*.78,675));
   const imageHeight=wide?stageHeight:safe.top+64+width/1.5;
+  const imageLeft=Math.max(0,width-imageHeight*1.5);
+  // Keep the moving foreground silhouettes inside the fade, including their overflow.
+  const fadeStart=Math.max(width*.27,imageLeft ? imageLeft+imageHeight*.09 : 0);
+  const fadeEnd=Math.min(width,Math.max(width*.62,fadeStart+imageHeight*.32));
   useEffect(()=>{
     if (!running || Platform.OS === 'web') return;
     const loop=Animated.loop(Animated.timing(wind,{toValue:1,duration:4900,easing:Easing.linear,useNativeDriver:driver,isInteraction:false}));
@@ -283,21 +290,20 @@ export function VillageStage({children,terrace=false,actions}:StageProps) {
       <View pointerEvents="none" style={StyleSheet.absoluteFill}>
         <Svg width="100%" height="100%">
           <Defs>
-            <LinearGradient id="shade" x1="0%" y1="0%" x2="0%" y2="100%">
+            <LinearGradient id={verticalShade} x1="0%" y1="0%" x2="0%" y2="100%">
               <Stop offset={wide?"0":String((imageHeight-width/1.5)/imageHeight)} stopColor={nightGround} stopOpacity={wide?".74":"1"}/>
               <Stop offset={wide?".2":String(1-width/1.5/imageHeight*.91)} stopColor={nightGround} stopOpacity=".04"/>
               <Stop offset={wide?'.72':'.55'} stopColor={nightGround} stopOpacity="0"/>
               <Stop offset=".97" stopColor={nightGround} stopOpacity=".12"/>
               <Stop offset="1" stopColor={nightGround} stopOpacity="1"/>
             </LinearGradient>
-            <LinearGradient id="copyShade" x1="0%" y1="0%" x2="100%" y2="0%">
-              <Stop offset={String(Math.max(0,1-imageHeight*1.5/width))} stopColor={nightGround} stopOpacity="1"/>
-              <Stop offset={String(Math.max(.42,1-imageHeight*1.5/width*.8))} stopColor={nightGround} stopOpacity=".65"/>
-              <Stop offset={String(Math.max(.8,1-imageHeight*1.5/width*.4))} stopColor={nightGround} stopOpacity="0"/>
+            <LinearGradient id={copyShade} x1="0%" y1="0%" x2="100%" y2="0%">
+              <Stop offset={`${100*fadeStart/width}%`} stopColor={nightGround} stopOpacity="1"/>
+              <Stop offset={`${100*fadeEnd/width}%`} stopColor={nightGround} stopOpacity="0"/>
             </LinearGradient>
           </Defs>
-          {wide && <Rect width="100%" height="100%" fill="url(#copyShade)"/>}
-          <Rect width="100%" height="100%" fill="url(#shade)"/>
+          {wide && <Rect width="100%" height="100%" fill={`url(#${copyShade})`}/>}
+          <Rect width="100%" height="100%" fill={`url(#${verticalShade})`}/>
         </Svg>
       </View>
     </View>
