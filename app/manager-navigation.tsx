@@ -1,9 +1,10 @@
+import {ClipboardCheck, LogOut, Menu, Settings, Users, X} from 'lucide-react';
 import {useRef, useState} from 'react';
 
 export const managerSections = [
-  {id:'warga', label:'Warga'},
-  {id:'rekap', label:'Presensi'},
-  {id:'pengaturan', label:'Pengaturan RT'},
+  {id:'warga', label:'Warga', icon:Users},
+  {id:'rekap', label:'Presensi', icon:ClipboardCheck},
+  {id:'pengaturan', label:'Pengaturan RT', icon:Settings},
 ] as const;
 
 export type ManagerSection = (typeof managerSections)[number]['id'];
@@ -21,20 +22,20 @@ export function ManagerNavigation({current,onSelect,onLogout}:{
       toggle.current?.focus();
     }
   }}>
-    <button type="button" ref={toggle} className="manager-menu-toggle"
+    <button type="button" ref={toggle} className="manager-menu-toggle with-icon"
       aria-expanded={open} aria-controls="manager-menu" onClick={()=>setOpen(value=>!value)}>
-      <span className="manager-menu-icon" aria-hidden="true"/>
+      {open?<X aria-hidden="true"/>:<Menu aria-hidden="true"/>}
       Menu pengurus
     </button>
     <div id="manager-menu" className="manager-menu" data-open={open}>
       <nav aria-label="Menu pengurus">
-        {managerSections.map(({id,label})=><button key={id} type="button"
+        {managerSections.map(({id,label,icon:Icon})=><button key={id} type="button" className="with-icon"
           aria-current={current===id?'page':undefined} onClick={()=>{
             setOpen(false);
             onSelect(id);
-          }}>{label}</button>)}
+          }}><Icon aria-hidden="true"/>{label}</button>)}
       </nav>
-      <button className="manager-logout" type="button" onClick={onLogout}>Keluar</button>
+      <button className="manager-logout with-icon" type="button" onClick={onLogout}><LogOut aria-hidden="true"/>Keluar</button>
     </div>
   </aside>;
 }

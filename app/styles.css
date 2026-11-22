@@ -145,8 +145,6 @@ body:has(.manager-layout) header { background: var(--workspace-sidebar); }
 .manager-menu button[aria-current=page] { background: var(--workspace-selected); color: var(--workspace-accent); }
 .manager-sidebar .manager-logout { margin-block-start: .5rem; border-top: 1px solid #cbd6bf; border-radius: 0; }
 .manager-menu-toggle { border: 1px solid var(--workspace-border); background: var(--workspace-bg); color: var(--workspace-text); display: flex; align-items: center; gap: .75rem; padding-inline: .75rem; }
-.manager-menu-icon { width: 1.1rem; height: .85rem; border-block: 2px solid; position: relative; }
-.manager-menu-icon::after { content: ''; position: absolute; inset-inline: 0; top: calc(50% - 1px); border-top: 2px solid; }
 .manager-content { min-width: 0; font-size: 1rem; }
 .manager-content h2 { font-family: inherit; font-size: 1.125rem; font-weight: 750; }
 .manager-content section, .manager-content details { border-color: var(--workspace-border); }
@@ -210,3 +208,6 @@ textarea {
 .invitation-actions a { display: inline-flex; align-items: center; min-height: 48px; color: var(--workspace-accent); font-weight: 650; }
 .invitation-list { margin: 0; padding: 0; list-style: none; }
 .invitation-list li + li { border-block-start: 1px solid var(--workspace-border); padding-block-start: .75rem; }
+.with-icon { display: inline-flex; align-items: center; justify-content: center; gap: .55rem; }
+.with-icon > svg { inline-size: 1.125rem; block-size: 1.125rem; flex: 0 0 auto; }
+.manager-sidebar .with-icon { justify-content: flex-start; }

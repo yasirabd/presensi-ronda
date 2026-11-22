@@ -1,4 +1,5 @@
 'use client';
+import {Copy, Link2, MessageCircle, UserPlus, X} from 'lucide-react';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import type {SupabaseClient} from '@supabase/supabase-js';
 
@@ -89,7 +90,8 @@ export function Invitations({db,rt,name,revision}:{db:SupabaseClient;rt:string;n
   return <section className="invitation-panel" aria-labelledby="invitation-title">
     <div className="invitation-heading">
       <h2 id="invitation-title">Undangan warga</h2>
-      <button type="button" aria-expanded={formOpen} aria-controls="create-invitation" onClick={()=>setFormOpen(open=>!open)}>
+      <button type="button" className="with-icon" aria-expanded={formOpen} aria-controls="create-invitation" onClick={()=>setFormOpen(open=>!open)}>
+        {formOpen?<X aria-hidden="true"/>:<UserPlus aria-hidden="true"/>}
         {formOpen?'Tutup formulir':'Undang warga'}
       </button>
     </div>
@@ -97,7 +99,7 @@ export function Invitations({db,rt,name,revision}:{db:SupabaseClient;rt:string;n
       <form onSubmit={create}>
         <label>Email warga<input type="email" name="email" required maxLength={254} autoComplete="off"/></label>
         <small>Warga perlu masuk atau daftar dengan email ini. Tautan berlaku 2 hari.</small>
-        <button disabled={busy}>{busy?'Menyiapkan…':'Buat tautan'}</button>
+        <button className="with-icon" disabled={busy}><Link2 aria-hidden="true"/>{busy?'Menyiapkan…':'Buat tautan'}</button>
       </form>
     </div>
     {selected && <div className="invitation-share">
@@ -105,8 +107,8 @@ export function Invitations({db,rt,name,revision}:{db:SupabaseClient;rt:string;n
       <p>Kirim lewat chat pribadi ke warga yang diundang.</p>
       <label>Tautan undangan<input readOnly value={link} onFocus={event=>event.currentTarget.select()}/></label>
       <div className="invitation-actions">
-        <a href={whatsapp} target="_blank" rel="noopener noreferrer">Bagikan lewat WhatsApp</a>
-        <button type="button" className="secondary" onClick={copy}>Salin tautan</button>
+        <a className="with-icon" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true"/>Bagikan lewat WhatsApp</a>
+        <button type="button" className="secondary with-icon" onClick={copy}><Copy aria-hidden="true"/>Salin tautan</button>
       </div>
     </div>}
     <p role="status" className="manager-notice">{message}</p>

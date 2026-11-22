@@ -1,4 +1,5 @@
 'use client';
+import {LocateFixed} from 'lucide-react';
 import {useEffect, useState, type FormEvent} from 'react';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {readPosition} from './location';
@@ -68,7 +69,7 @@ export function PostLocation({db,rt,name}:{db:SupabaseClient;rt:string;name:stri
   return <section>
     <h2>Lokasi pos ronda</h2>
     <p>Pos <strong>{name}</strong>. Ambil titik saat Anda berada di pos ronda.</p>
-    <button type="button" className="location-capture" disabled={Boolean(busy)} onClick={capture}>Gunakan lokasi sekarang</button>
+    <button type="button" className="location-capture with-icon" disabled={Boolean(busy)} onClick={capture}><LocateFixed aria-hidden="true"/>Gunakan lokasi sekarang</button>
     <p role="status">{message || (busy==='load'?'Memuat lokasi pos…':saved?'Lokasi pos sudah tersimpan.':'Lokasi pos belum diatur.')}</p>
     {point && <form onSubmit={save}>
       <p className="location-coordinates">

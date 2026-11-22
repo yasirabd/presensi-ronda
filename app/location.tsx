@@ -1,4 +1,5 @@
 'use client';
+import {MapPinCheck} from 'lucide-react';
 import {FaceCamera} from './face';
 import {useState} from 'react';
 import type {SupabaseClient} from '@supabase/supabase-js';
@@ -42,7 +43,7 @@ export function LocationCheck({db,rt,onAttendance}:{db:SupabaseClient;rt:string;
   return <>
     {!proof && !recorded && <>
       <small>Izinkan lokasi untuk memeriksa jarak ke pos ronda.</small>
-      <button disabled={busy} onClick={check}>{busy?'Memeriksa lokasi…':'Absen sekarang'}</button>
+      <button className="with-icon" disabled={busy} onClick={check}><MapPinCheck aria-hidden="true"/>{busy?'Memeriksa lokasi…':'Absen sekarang'}</button>
     </>}
     <p role="status">{message}</p>
     {proof && <>

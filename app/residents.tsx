@@ -1,4 +1,5 @@
 'use client';
+import {PencilLine} from 'lucide-react';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import type {SupabaseClient} from '@supabase/supabase-js';
 
@@ -95,7 +96,7 @@ export function ResidentTable({db,rt,members,revision,changed}:{
             <td className="resident-expanded">{member.home_address||'Belum diisi'}</td>
             <td className="resident-expanded">{member.email}</td>
             <td>{status==='ready'?'Terdaftar':!complete?'Data belum lengkap':status==='approved'?'Boleh daftar':status==='pending'?'Belum disetujui':'—'}</td>
-            <td><button type="button" className="text-action" onClick={()=>setEditing(member.user_id)} aria-expanded={editing===member.user_id} aria-controls={editing===member.user_id?'edit-resident':undefined}>Detail</button></td>
+            <td><button type="button" className="text-action with-icon" onClick={()=>setEditing(member.user_id)} aria-expanded={editing===member.user_id} aria-controls={editing===member.user_id?'edit-resident':undefined}><PencilLine aria-hidden="true"/>Detail</button></td>
           </tr>;
         })}</tbody>
       </table>

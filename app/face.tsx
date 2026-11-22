@@ -1,4 +1,5 @@
 'use client';
+import {Camera, ScanFace} from 'lucide-react';
 import {useEffect,useRef,useState} from 'react';
 import type {SupabaseClient} from '@supabase/supabase-js';
 
@@ -39,7 +40,7 @@ export function FaceCamera({db,rt,shift,locationSession,onDone}:Props){
   }
   return <div>{!shift && <label><input type="checkbox" checked={consent} disabled={active} onChange={e=>setConsent(e.target.checked)}/>Saya setuju mendaftarkan templat wajah terenkripsi untuk presensi RT ini. Foto hanya diproses selama pemeriksaan. Saya dapat menarik persetujuan di sini.</label>}
     <video hidden={!active} ref={video} playsInline muted style={{width:'100%'}}/>
-    {active?<><button disabled={busy} onClick={capture}>{shift?'Verifikasi kehadiran':'Simpan pendaftaran wajah'}</button><button disabled={busy} onClick={stop}>Tutup kamera</button></>:<button disabled={busy||(!shift&&!consent)} onClick={open}>Buka kamera depan</button>}
+    {active?<><button className="with-icon" disabled={busy} onClick={capture}><ScanFace aria-hidden="true"/>{shift?'Verifikasi kehadiran':'Simpan pendaftaran wajah'}</button><button disabled={busy} onClick={stop}>Tutup kamera</button></>:<button className="with-icon" disabled={busy||(!shift&&!consent)} onClick={open}><Camera aria-hidden="true"/>Buka kamera depan</button>}
     <p role="status">{message}</p></div>;
 }
 
