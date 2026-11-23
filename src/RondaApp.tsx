@@ -51,6 +51,12 @@ export default function RondaApp({path}: {path: string}) {
     else { setOptions(false); router.replace('/'); }
   }
   function openPage(next:typeof page){setPage(next);setOptions(false);}
+  const membership = <Card><Body>Keanggotaan</Body>
+              <Button secondary icon="ticket-outline" label="Gunakan kode undangan"
+                onPress={()=>{setOptions(false);router.push({pathname:'/',params:{gabung:'1'}});}}/>
+              <Button secondary icon="add-circle-outline" label="Daftarkan RT lain"
+                onPress={()=>{setOptions(false);router.push('/daftar');}}/>
+            </Card>;
   const header = <>
     <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12}}>
       <View style={{flex:1}}><Title>{room?.name || 'Ronda Pak'}</Title></View>
@@ -82,15 +88,9 @@ export default function RondaApp({path}: {path: string}) {
             </Card>
             {room && <Card><Body>Akun saya</Body>
               <Button secondary icon="person-outline" label="Profil saya" onPress={()=>openPage('Profil saya')}/>
-              <Button secondary icon="lock-closed-outline" label="Privasi dan data saya" onPress={()=>openPage('Privasi')}/>
               {manager && <Button secondary icon="settings-outline" label="Pengaturan RT" onPress={()=>{setPersonal(false);openPage('Pengaturan RT');}}/>}
             </Card>}
-            <Card><Body>Keanggotaan</Body>
-              <Button secondary icon="ticket-outline" label="Gunakan kode undangan"
-                onPress={()=>{setOptions(false);router.push({pathname:'/',params:{gabung:'1'}});}}/>
-              <Button secondary icon="add-circle-outline" label="Daftarkan RT lain"
-                onPress={()=>{setOptions(false);router.push('/daftar');}}/>
-            </Card>
+            {!room && membership}
             {!!notice && <Body>{notice}</Body>}
             <Button secondary icon="log-out-outline" label="Keluar" onPress={logout}/>
           </ScrollView>
@@ -99,8 +99,13 @@ export default function RondaApp({path}: {path: string}) {
     </Modal>
   </>;
   if (!w.error && room && user && (page==='Profil saya' || page==='Privasi')) {
-    return <Screen>{header}<Button quiet label="Kembali" icon="arrow-back-outline" onPress={()=>openPage(null)}/>
-      <Resident rt={room.id} userId={user} page={page} openProfile={()=>openPage('Profil saya')}/></Screen>;
+    return <Screen>{header}<Button quiet label="Kembali" icon="arrow-back-outline" onPress={()=>openPage(page==='Privasi'?'Profil saya':null)}/>
+      <Resident rt={room.id} userId={user} page={page} openProfile={()=>openPage('Profil saya')}/>
+      {page==='Profil saya' && <>
+        <Button secondary icon="lock-closed-outline" label="Ajukan permintaan data pribadi" onPress={()=>openPage('Privasi')}/>
+        {membership}
+      </>}
+    </Screen>;
   }
   if (!w.error && room && user && manager && !personal) {
     return <Manager key={room.id+user} rt={room.id} userId={user} name={room.name}
