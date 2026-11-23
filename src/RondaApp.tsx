@@ -59,14 +59,27 @@ export default function RondaApp({path}: {path: string}) {
               <Button secondary icon="add-circle-outline" label="Daftarkan RT lain"
                 onPress={()=>{setOptions(false);router.push('/daftar');}}/>
             </Card>;
+  function switchPersonal(next:boolean) {
+    setResidentTab('Presensi');
+    setPersonal(next);
+    openPage(null);
+  }
   const header = <>
     <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12}}>
-      <View style={{flex:1}}><Title>{room?.name || 'Ronda Pak'}</Title></View>
+      <View style={{flex:1,minWidth:0}}>
+        <Title>{manager && personal && !page ? 'Presensi saya' : room?.name || 'Ronda Pak'}</Title>
+        {manager && personal && !page && <Body>{room?.name}</Body>}
+      </View>
       <Pressable accessibilityRole="button" accessibilityLabel="Pilihan akun dan RT" accessibilityState={{expanded:options}} aria-expanded={options}
         onPress={()=>{setNotice('');setOptions(true);}} style={{minWidth:48,minHeight:48,alignItems:'center',justifyContent:'center',borderRadius:16,backgroundColor:theme.surface}}>
         <Image accessible={false} source={require('../public/ronda-pak-owl.png')} style={{width:32,height:32}}/>
       </Pressable>
     </View>
+    {manager && !page && <View style={{alignSelf:'flex-start'}}>
+      <Button secondary icon={personal?'arrow-back-outline':'location-outline'}
+        label={personal?'Kembali kelola RT · '+managerTab:'Presensi saya'}
+        onPress={()=>switchPersonal(!personal)}/>
+    </View>}
     <Modal visible={options} transparent animationType="slide" onRequestClose={()=>setOptions(false)}>
       <View style={{flex:1,justifyContent:'flex-end',backgroundColor:'rgba(9,16,28,.48)'}}>
         <Pressable accessible={false} importantForAccessibility="no" tabIndex={-1}
@@ -85,8 +98,7 @@ export default function RondaApp({path}: {path: string}) {
               {w.rooms.filter(item=>item.id!==w.current).map(item=><Button key={item.id}
                 icon="swap-horizontal-outline" label={'Pindah ke '+item.name} secondary
                 onPress={()=>{setOptions(false);w.choose(item.id);}}/>)}
-              {manager && <Button secondary icon={personal?'settings-outline':'location-outline'}
-                label={personal?'Kelola RT':'Presensi saya'} onPress={()=>{setResidentTab('Presensi');setPersonal(!personal);openPage(null);}}/>}
+
             </Card>
             {room && <Card><Body>Akun saya</Body>
               <Button secondary icon="person-outline" label="Profil saya" onPress={()=>openPage('Profil saya')}/>
