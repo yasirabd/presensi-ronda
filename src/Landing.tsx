@@ -11,10 +11,10 @@ import { type } from './theme/typography';
 
 
 const guides = [
-  { title: 'Cara absen sebagai warga', steps: [
+  { title: 'Cara presensi sebagai warga', steps: [
     'Buka tautan undangan WhatsApp dari pengurus. Isi data diri dan rekam wajah. Jika sudah punya akun, masuk dulu.',
     'Konfirmasi email, lalu tunggu persetujuan pengurus. Jika tadi melewati kamera, daftarkan wajah sebelum presensi pertama.',
-    'Di pos ronda, pilih Absen sekarang. Izinkan akses lokasi dan kamera depan, lalu pilih Verifikasi kehadiran. Status Hadir berarti presensi sudah tercatat.',
+    'Di pos ronda, pilih Presensi sekarang. Izinkan akses lokasi dan kamera depan, lalu pilih Verifikasi kehadiran. Status Hadir berarti presensi sudah tercatat.',
   ] },
   { title: 'Cara menyiapkan RT', steps: [
     'Pilih Daftarkan RT, buat akun, dan konfirmasi email. Isi nomor RT, RW, serta wilayah.',

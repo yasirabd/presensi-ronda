@@ -3,7 +3,7 @@ import {useCallback,useState} from 'react';
 import {Platform,View} from 'react-native';
 import {db} from './client';
 import {Body,Button,Card,Field,Title} from './ui';
-import {checked,Choices,LoadState,useRead,useWork} from './manager-common';
+import {statusPresensi,checked,Choices,LoadState,useRead,useWork} from './manager-common';
 
 type Row={id:string;post:string;starts_at:string;ends_at:string;resident_name:string|null;change_id:string|null;reason:string|null;status:string};
 const resident=(row:Row)=>row.resident_name||'Nama belum diisi';
@@ -18,7 +18,7 @@ function csvCell(value:string) {
 
 async function exportReport(rows:Row[],filename:string){
   const lines=[['Warga','Pos','Mulai (UTC)','Selesai (UTC)','Status'],
-    ...rows.map(r=>[resident(r),r.post,new Date(r.starts_at).toISOString(),new Date(r.ends_at).toISOString(),r.status])];
+    ...rows.map(r=>[resident(r),r.post,new Date(r.starts_at).toISOString(),new Date(r.ends_at).toISOString(),statusPresensi(r.status)])];
   const csv='\uFEFF'+lines.map(line=>line.map(csvCell).join(',')).join('\r\n');
   if(Platform.OS==='web'){
     const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
@@ -42,7 +42,7 @@ function RecordRow({rt,row,changed}:{rt:string;row:Row;changed:()=>void}) {
   const [reason,setReason]=useState('');
   const work=useWork();
   return <View style={{gap:8,paddingVertical:8,borderTopWidth:1,borderTopColor:theme.border}}>
-    <Title>{resident(row)}</Title><Body>{row.status} · {row.post} · {new Date(row.starts_at).toLocaleString('id-ID')}</Body>
+    <Title>{resident(row)}</Title><Body>{statusPresensi(row.status)} · {row.post} · {new Date(row.starts_at).toLocaleString('id-ID')}</Body>
     <Button secondary label={open?'Tutup catatan':'Lihat catatan'} onPress={()=>setOpen(!open)}/>
     {open&&<>
       {row.reason&&<Body>Alasan terakhir · {row.reason}</Body>}

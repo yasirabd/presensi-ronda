@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import * as Location from 'expo-location';
 import { apiUrl, db } from './client';
 import Capture, { jpegBytes } from './Capture';
-import { checked, Choices, LoadState, useRead, useWork } from './manager-common';
+import { statusPresensi, checked, Choices, LoadState, useRead, useWork } from './manager-common';
 import { Body, Button, Card, Field, Title } from './ui';
 
 type Props = { rt: string; userId: string };
@@ -75,7 +75,7 @@ function Attendance({ rt, userId, zone, status }: Props & { zone: string; status
   return <Card>
     <Title>Presensi ronda</Title>
     <Body>{status === 'ready' ? 'Datang ke pos ronda, lalu izinkan pemeriksaan lokasi dan wajah Anda.' :
-      'Lengkapi pendaftaran wajah untuk absen mandiri, atau minta pengurus mencatat presensi manual.'}</Body>
+      'Lengkapi pendaftaran wajah untuk presensi mandiri, atau minta pengurus mencatat presensi manual.'}</Body>
     {message ? <Body>{message}</Body> : null}
     {work.message ? <Body>{work.message}</Body> : null}
     {proof ? <Capture onCancel={() => { setProof(null); setMessage('Silakan periksa kembali lokasi Anda.'); }}
@@ -84,7 +84,7 @@ function Attendance({ rt, userId, zone, status }: Props & { zone: string; status
         setRecordedDay(day(new Date(time))); setProof(null);
         setMessage('Hadir · ' + displayTime(time, zone));
       }} /> : status === 'ready' && recordedDay !== day(new Date()) &&
-        <Button label={work.busy ? 'Memeriksa lokasi…' : 'Absen sekarang'}
+        <Button label={work.busy ? 'Memeriksa lokasi…' : 'Presensi sekarang'}
           disabled={work.busy} onPress={() => work.run(checkLocation)} />}
   </Card>;
 }
@@ -140,7 +140,7 @@ function History({ rt, zone }: { rt: string; zone: string }) {
   const read = useRead(useCallback(async () => checked(await db.rpc('my_schedule', { target: rt })) as HistoryRow[], [rt]), 0);
   return <Card><Title>Riwayat presensi saya</Title>
     {!read.data ? <LoadState {...read} /> : read.data.length === 0 ? <Body>Belum ada riwayat presensi.</Body> :
-      read.data.map(row => <View key={row.id}><Body>{row.post} · {row.status}</Body><Body>{displayTime(row.starts_at, zone)}</Body></View>)}
+      read.data.map(row => <View key={row.id}><Body>{row.post} · {statusPresensi(row.status)}</Body><Body>{displayTime(row.starts_at, zone)}</Body></View>)}
   </Card>;
 }
 
@@ -178,7 +178,7 @@ function ResidentSpace({ rt, userId }: Props) {
     return { profile: checked(profile) as Profile, face: checked(face) as string,
       community: checked(community) as { zone: string; privacy_contact: string | null } };
   }, [rt, userId]), 0);
-  const [section, setSection] = useState('Absen');
+  const [section, setSection] = useState('Presensi');
   const [updatedProfile, setProfile] = useState<Profile | null>(null);
   const [updatedFace, setFace] = useState<string | null>(null);
   if (!read.data) return <Card><LoadState {...read} /></Card>;
@@ -186,8 +186,8 @@ function ResidentSpace({ rt, userId }: Props) {
   const face = updatedFace || read.data.face;
   const { zone, privacy_contact } = read.data.community;
   return <View style={{ gap: 16 }}>
-    <SectionMenu items={['Absen', 'Riwayat', 'Data saya', 'Privasi']} value={section} select={setSection} />
-    {section === 'Absen' ? <Attendance rt={rt} userId={userId} status={face} zone={zone} /> :
+    <SectionMenu items={['Presensi', 'Riwayat', 'Data saya', 'Privasi']} value={section} select={setSection} />
+    {section === 'Presensi' ? <Attendance rt={rt} userId={userId} status={face} zone={zone} /> :
       section === 'Riwayat' ? <History rt={rt} zone={zone} /> :
       section === 'Privasi' ? <Privacy rt={rt} userId={userId} contact={privacy_contact || ''} zone={zone} /> : <>
         <ProfileForm rt={rt} userId={userId} profile={profile} saved={setProfile} />

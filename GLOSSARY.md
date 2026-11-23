@@ -17,7 +17,7 @@ Identitas administratif RT yang mencakup nomor RT, nomor RW, kelurahan atau desa
 Titik lokasi yang ditetapkan pengurus di RT untuk memeriksa lokasi warga saat presensi.
 
 **Presensi mandiri**
-Catatan kehadiran warga yang dibuat setelah pemeriksaan wajah dan lokasi pos ronda berhasil. Warga dapat absen sekali per hari menurut zona waktu RT.
+Catatan kehadiran warga yang dibuat setelah pemeriksaan wajah dan lokasi pos ronda berhasil. Warga dapat presensi sekali per hari menurut zona waktu RT.
 
 
 **Pengurus RT**

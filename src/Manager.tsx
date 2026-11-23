@@ -14,7 +14,7 @@ import { type } from './theme/typography';
 const tabs = [
   {label:'Beranda', icon:'home-outline'},
   {label:'Warga', icon:'people-outline'},
-  {label:'Presensi', icon:'calendar-outline'},
+  {label:'Rekap', icon:'calendar-outline'},
   {label:'Pengaturan', icon:'settings-outline'},
 ] as const;
 type Section = typeof tabs[number]['label'];
@@ -76,10 +76,10 @@ export default function Manager({rt, userId, name, owner, header}:Props) {
       <View style={{width:'100%',maxWidth:1060,alignSelf:'center',gap:desktop?20:14}}>
         {header}
     {section==='Beranda' ? <Overview rt={rt} name={name} count={members.data?.filter(member=>member.role==='resident').length}
-      invite={() => navigate('Warga',true)} report={() => navigate('Presensi')}
+      invite={() => navigate('Warga',true)} report={() => navigate('Rekap')}
       residents={() => navigate('Warga')} settings={() => navigate('Pengaturan')} desktop={desktop}
       firstName={members.data?.find(member=>member.user_id===userId)?.resident_name?.trim().split(/\s+/)[0]}/> :
-      section==='Presensi' ? <ManagerReport rt={rt}/> :
+      section==='Rekap' ? <ManagerReport rt={rt}/> :
       !members.data ? <LoadState {...members}/> :
       section==='Warga' ? <Residents rt={rt} name={name} members={members.data} revision={revision}
         changed={changed} startInvite={startInvite}/> :
@@ -170,7 +170,7 @@ function Overview({rt,name,count,invite,report,residents,settings,desktop,firstN
           <Text accessibilityRole="header" style={[type.title,{color:c.text}]}>Perlu ditangani</Text>
           {post.error && <LoadState {...post}/>}
           {pending.error && <LoadState {...pending}/>}
-          {needsLocation && <Body>Simpan titik pos agar warga bisa absen dengan verifikasi lokasi.</Body>}
+          {needsLocation && <Body>Simpan titik pos agar warga bisa presensi dengan verifikasi lokasi.</Body>}
           {!!pending.data && <Button secondary icon="people-outline"
             label={`${pending.data} pendaftaran menunggu`} onPress={residents}/>}
           {post.data && pending.data===0 && <Body>Lokasi pos sudah siap. Semua pendaftaran warga sudah ditinjau.</Body>}

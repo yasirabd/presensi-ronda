@@ -5,8 +5,8 @@ import { radius, size, space } from './theme/layout';
 import { type } from './theme/typography';
 
 const icons = {
-  Warga: 'people-outline', Presensi: 'calendar-outline', 'Pengaturan RT': 'settings-outline',
-  Absen: 'location-outline', Riwayat: 'time-outline', 'Data saya': 'person-outline', Privasi: 'lock-closed-outline',
+  Warga: 'people-outline', Rekap: 'calendar-outline', 'Pengaturan RT': 'settings-outline',
+  Presensi: 'location-outline', Riwayat: 'time-outline', 'Data saya': 'person-outline', Privasi: 'lock-closed-outline',
 } as const;
 
 type Section = keyof typeof icons;

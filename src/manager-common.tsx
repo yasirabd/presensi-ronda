@@ -56,3 +56,8 @@ export function Choices<T extends string>({items,value,select}:{items:readonly T
   return <View style={{flexDirection:'row',gap:8,flexWrap:'wrap'}}>{items.map(item=>
     <Button key={item} label={item} secondary={value!==item} onPress={()=>select(item)}/>)}</View>;
 }
+
+// Older report and history RPCs return a legacy label for pending attendance.
+export function statusPresensi(status:string) {
+  return status === 'Belum absen' ? 'Belum presensi' : status;
+}
