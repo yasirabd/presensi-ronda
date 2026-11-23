@@ -130,21 +130,11 @@ function RequestRow({item,member,changed}:{item:PrivacyRequest;member?:Member;ch
 
 function Requests({rt,members}:Pick<Props,'rt'|'members'>){
   const [revision,setRevision]=useState(0);
-  const [kind,setKind]=useState('Akses');
-  const [details,setDetails]=useState('');
-  const work=useWork();
   const changed=()=>setRevision(n=>n+1);
   const load=useCallback(async()=>checked(await db.from('privacy_requests').select('id,kind,details,resolution,user_id,created_at')
     .eq('rt_id',rt).order('created_at',{ascending:false})) as PrivacyRequest[],[rt]);
   const state=useRead(load,revision,true);
   return <Card><Title>Permintaan privasi</Title>
-    <Body>Jenis permintaan</Body><Choices items={['Akses','Koreksi','Penghapusan']} value={kind} select={setKind}/>
-    <Field label="Permintaan Anda" multiline value={details} onChangeText={setDetails}/>
-    <Button label="Kirim permintaan" disabled={work.busy||!details.trim()||details.trim().length>500} onPress={()=>work.run(async()=>{
-      checked(await db.from('privacy_requests').insert({rt_id:rt,kind,details:details.trim()}));
-      setDetails('');changed();
-    },'Permintaan terkirim.')}/>
-    {work.message&&<Body>{work.message}</Body>}
     {state.error||!state.data?<LoadState {...state}/>:!state.data.length?<Body>Belum ada permintaan.</Body>:state.data.map(item=>
       <RequestRow key={item.id} item={item} member={members.find(m=>m.user_id===item.user_id)} changed={changed}/>)}
   </Card>;

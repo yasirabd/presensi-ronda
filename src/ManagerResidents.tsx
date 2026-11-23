@@ -79,11 +79,11 @@ function Invitations({rt,name,revision,changed,startInvite}:Omit<Props,'members'
     </>}
     {work.message&&<Body>{work.message}</Body>}
     {!state.data?<LoadState {...state}/>:<>
-      {state.data.pending.length>0&&<Title>Menunggu konfirmasi ({state.data.pending.length})</Title>}
+      {state.data.pending.length>0&&<Title>Menunggu persetujuan ({state.data.pending.length})</Title>}
       {state.data.pending.map(request=><View key={request.token} style={{gap:8}}>
         <Body>{request.full_name} · +{request.whatsapp}</Body><Body>{request.home_address}</Body>
         <Body>{request.has_face?'Wajah sudah didaftarkan.':'Pengajuan tanpa wajah.'} Periksa identitas warga sebelum menyetujui.</Body>
-        <Button label="Konfirmasi identitas" disabled={work.busy} onPress={()=>work.run(async()=>{
+        <Button label="Setujui pendaftaran" disabled={work.busy} onPress={()=>work.run(async()=>{
           checked(await db.rpc('approve_join',{target:rt,code:request.token}));
           if(selected?.token===request.token)setSelected(null);
           changed();

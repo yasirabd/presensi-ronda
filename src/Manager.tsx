@@ -15,12 +15,11 @@ const tabs = [
   {label:'Beranda', icon:'home-outline'},
   {label:'Warga', icon:'people-outline'},
   {label:'Rekap', icon:'calendar-outline'},
-  {label:'Pengaturan', icon:'settings-outline'},
 ] as const;
 type Section = typeof tabs[number]['label'];
-type Props = {rt:string; userId:string; name:string; owner:boolean; header:ReactNode};
+type Props = {rt:string; userId:string; name:string; owner:boolean; settingsOpen:boolean;settings:(open:boolean)=>void;header:ReactNode};
 
-export default function Manager({rt, userId, name, owner, header}:Props) {
+export default function Manager({rt, userId, name, owner, header,settingsOpen,settings}:Props) {
   const c = useOwl();
   const safe = useSafeAreaInsets();
   const {width, fontScale} = useWindowDimensions();
@@ -34,7 +33,8 @@ export default function Manager({rt, userId, name, owner, header}:Props) {
     .select('user_id,email,role,resident_name,home_address,whatsapp').eq('rt_id',rt)) as Member[], [rt]);
   const members = useRead(load, revision, true);
   function navigate(next:Section, invite = false) {
-    if (next === section) return;
+    settings(false);
+    if (next === section && !settingsOpen) return;
     setStartInvite(invite);
     setSection(next);
     scroll.current?.scrollTo({y:0,animated:false});
@@ -53,7 +53,7 @@ export default function Manager({rt, userId, name, owner, header}:Props) {
       <Text style={[type.label,{color:c.text,fontSize:18}]}>Ronda Pak</Text>
     </View>}
     {tabs.map(({label,icon}) => {
-      const selected = section===label;
+      const selected = !settingsOpen && section===label;
       const color = selected ? c.accent : c.textSecondary;
       return <Pressable key={label} accessibilityRole="tab" accessibilityLabel={label}
         accessibilityState={{selected}} aria-selected={selected} onPress={() => navigate(label)}
@@ -75,13 +75,13 @@ export default function Manager({rt, userId, name, owner, header}:Props) {
       }}>
       <View style={{width:'100%',maxWidth:1060,alignSelf:'center',gap:desktop?20:14}}>
         {header}
-    {section==='Beranda' ? <Overview rt={rt} name={name} count={members.data?.filter(member=>member.role==='resident').length}
+    {!settingsOpen && section==='Beranda' ? <Overview rt={rt} name={name} count={members.data?.filter(member=>member.role==='resident').length}
       invite={() => navigate('Warga',true)} report={() => navigate('Rekap')}
-      residents={() => navigate('Warga')} settings={() => navigate('Pengaturan')} desktop={desktop}
+      residents={() => navigate('Warga')} settings={() => settings(true)} desktop={desktop}
       firstName={members.data?.find(member=>member.user_id===userId)?.resident_name?.trim().split(/\s+/)[0]}/> :
-      section==='Rekap' ? <ManagerReport rt={rt}/> :
+      !settingsOpen && section==='Rekap' ? <ManagerReport rt={rt}/> :
       !members.data ? <LoadState {...members}/> :
-      section==='Warga' ? <Residents rt={rt} name={name} members={members.data} revision={revision}
+      !settingsOpen && section==='Warga' ? <Residents rt={rt} name={name} members={members.data} revision={revision}
         changed={changed} startInvite={startInvite}/> :
       <ManagerSettings rt={rt} name={name} owner={owner && members.data.some(m=>m.user_id===userId&&m.role==='owner')}
         members={members.data} changed={changed}/>}
@@ -161,8 +161,8 @@ function Overview({rt,name,count,invite,report,residents,settings,desktop,firstN
           {count !== undefined && <Body>{count} warga terdaftar di RT ini</Body>}
           <Button quiet label="Buka rekap presensi" icon="arrow-forward-outline" onPress={report}/>
         </Card>
-        {post.data !== null && <Button label={needsLocation?'Atur lokasi pos':'Undang warga'}
-          icon={needsLocation?'location-outline':'person-add-outline'} onPress={needsLocation?settings:invite}/>}
+        {post.data !== null && <Button label={needsLocation?'Atur lokasi pos':pending.data?'Tinjau pendaftaran':'Undang warga'}
+          icon={needsLocation?'location-outline':'person-add-outline'} onPress={needsLocation?settings:pending.data?residents:invite}/>}
       </View>
 
       <View style={{flex:desktop?1:undefined,minWidth:0}}>
@@ -171,8 +171,9 @@ function Overview({rt,name,count,invite,report,residents,settings,desktop,firstN
           {post.error && <LoadState {...post}/>}
           {pending.error && <LoadState {...pending}/>}
           {needsLocation && <Body>Simpan titik pos agar warga bisa presensi dengan verifikasi lokasi.</Body>}
-          {!!pending.data && <Button secondary icon="people-outline"
+          {!!pending.data && needsLocation && <Button secondary icon="people-outline"
             label={`${pending.data} pendaftaran menunggu`} onPress={residents}/>}
+          {!!pending.data && !needsLocation && <Body>{pending.data} pendaftaran menunggu persetujuan.</Body>}
           {post.data && pending.data===0 && <Body>Lokasi pos sudah siap. Semua pendaftaran warga sudah ditinjau.</Body>}
           {!post.error && !pending.error && (post.data===null || pending.data===null) && <Body>Memeriksa status RT…</Body>}
         </Card>

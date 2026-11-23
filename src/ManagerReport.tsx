@@ -59,12 +59,15 @@ function RecordRow({rt,row,changed}:{rt:string;row:Row;changed:()=>void}) {
   </View>;
 }
 
-function ReportPeriod({rt,month,search}:{rt:string;month:string;search:string}){
+function ReportPeriod({rt,month,search,today}:{rt:string;month:string;search:string;today:boolean}){
   const [revision,setRevision]=useState(0);
   const load=useCallback(async()=>{
     const [year,m]=month.split('-').map(Number);
-    return checked(await db.rpc('attendance_report',{target:rt,period_start:new Date(year,m-1,1).toISOString(),period_end:new Date(year,m,1).toISOString()})) as Row[];
-  },[rt,month]);
+    const date=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Jakarta'}).format(new Date());
+    const start=new Date(today?date+'T00:00:00+07:00':month+'-01T00:00:00+07:00');
+    const end=today?new Date(start.getTime()+86400000):new Date(Date.UTC(year,m,1)-7*3600000);
+    return checked(await db.rpc('attendance_report',{target:rt,period_start:start.toISOString(),period_end:end.toISOString()})) as Row[];
+  },[rt,month,today]);
   const state=useRead(load,revision,true);
   const work=useWork();
   if(state.error||!state.data)return <LoadState {...state}/>;
@@ -79,6 +82,7 @@ function ReportPeriod({rt,month,search}:{rt:string;month:string;search:string}){
 }
 
 export function ManagerReport({rt}:{rt:string}){
+  const [period,setPeriod]=useState('Hari ini');
   const [month,setMonth]=useState(()=>monthKey(new Date()));
   const [search,setSearch]=useState('');
   const valid=/^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(month);
@@ -86,13 +90,16 @@ export function ManagerReport({rt}:{rt:string}){
     const [year,m]=month.split('-').map(Number);
     setMonth(monthKey(new Date(year,m-1+offset,1)));
   }
-  return <Card><Title>Rekap presensi</Title>
+  return <Card><Title>Rekap kehadiran</Title>
+    <Choices items={['Hari ini','Bulanan']} value={period} select={setPeriod}/>
+    {period==='Bulanan' && <>
     <Field label="Bulan presensi (YYYY-MM)" value={month} onChangeText={setMonth}/>
     <View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>
       <Button secondary label="Bulan sebelumnya" disabled={!valid} onPress={()=>move(-1)}/>
       <Button secondary label="Bulan berikutnya" disabled={!valid} onPress={()=>move(1)}/>
     </View>
+    </>}
     <Field label="Cari nama warga" value={search} onChangeText={setSearch}/>
-    {valid?<ReportPeriod key={month} rt={rt} month={month} search={search}/>:<Body>Isi tahun dan bulan, misalnya 2026-11.</Body>}
+    {(valid || period==='Hari ini')?<ReportPeriod today={period==='Hari ini'} key={month+period} rt={rt} month={month} search={search}/>:<Body>Isi tahun dan bulan, misalnya 2026-11.</Body>}
   </Card>;
 }

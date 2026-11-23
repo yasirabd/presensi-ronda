@@ -94,7 +94,7 @@ function ProfileForm({ rt, userId, profile, saved }: Props & { profile: Profile;
   const [address, setAddress] = useState(profile.home_address || '');
   const work = useWork();
   return <Card>
-    <Title>Data warga saya</Title>
+    <Title>Profil saya</Title>
     <Field label="Nama warga" value={name} onChangeText={setName} />
     <Field label="Alamat rumah" value={address} onChangeText={setAddress} multiline />
     <Button label={work.busy ? 'Menyimpan…' : 'Simpan data warga'} disabled={work.busy} onPress={() => work.run(async () => {
@@ -125,7 +125,7 @@ function Registration({ rt, userId, complete, status, changed }: Props & {
         }, 'Templat wajah dihapus.')} />
         <Button secondary label="Batal" disabled={work.busy} onPress={() => setConfirmWithdrawal(false)} />
       </> : <Button secondary label="Tarik persetujuan" onPress={() => setConfirmWithdrawal(true)} />}
-    </> : !complete ? <Body>Isi nama dan alamat di Data warga saya sebelum mendaftarkan wajah.</Body> :
+    </> : !complete ? <Body>Isi nama dan alamat di Profil saya sebelum mendaftarkan wajah.</Body> :
       status === 'approved' ? <>
         <Body>Dengan melanjutkan, Anda menyetujui penyimpanan templat wajah terenkripsi untuk presensi RT ini. Foto hanya diproses saat pemeriksaan. Anda dapat menarik persetujuan di sini.</Body>
         {camera ? <Capture onCancel={() => setCamera(false)} onCapture={async jpeg => {
@@ -168,7 +168,8 @@ function Privacy({ rt, userId, contact, zone }: Props & { contact: string; zone:
   </Card>;
 }
 
-function ResidentSpace({ rt, userId }: Props) {
+type SpaceProps = Props & {page?:'Profil saya'|'Privasi';openProfile:()=>void};
+function ResidentSpace({ rt, userId, page, openProfile }: SpaceProps) {
   const read = useRead(useCallback(async () => {
     const [profile, face, community] = await Promise.all([
       db.from('memberships').select('resident_name, home_address').eq('rt_id', rt).eq('user_id', userId).single(),
@@ -186,16 +187,17 @@ function ResidentSpace({ rt, userId }: Props) {
   const face = updatedFace || read.data.face;
   const { zone, privacy_contact } = read.data.community;
   return <View style={{ gap: 16 }}>
-    <SectionMenu items={['Presensi', 'Riwayat', 'Data saya', 'Privasi']} value={section} select={setSection} />
-    {section === 'Presensi' ? <Attendance rt={rt} userId={userId} status={face} zone={zone} /> :
-      section === 'Riwayat' ? <History rt={rt} zone={zone} /> :
-      section === 'Privasi' ? <Privacy rt={rt} userId={userId} contact={privacy_contact || ''} zone={zone} /> : <>
+    {!page && <SectionMenu items={['Presensi', 'Riwayat']} value={section} select={setSection} />}
+    {!page && section === 'Presensi' ? <><Attendance rt={rt} userId={userId} status={face} zone={zone} />
+        {face!=='ready' && <Button label="Lengkapi pendaftaran wajah" onPress={openProfile}/>}</> :
+      !page && section === 'Riwayat' ? <History rt={rt} zone={zone} /> :
+      page === 'Privasi' ? <Privacy rt={rt} userId={userId} contact={privacy_contact || ''} zone={zone} /> : <>
         <ProfileForm rt={rt} userId={userId} profile={profile} saved={setProfile} />
         <Registration rt={rt} userId={userId} complete={!!(profile.resident_name && profile.home_address)} status={face} changed={setFace} />
       </>}
   </View>;
 }
 
-export default function Resident(props: Props) {
+export default function Resident(props: SpaceProps) {
   return <ResidentSpace key={props.rt + '/' + props.userId} {...props} />;
 }

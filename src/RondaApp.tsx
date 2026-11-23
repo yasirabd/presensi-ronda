@@ -19,11 +19,12 @@ export default function RondaApp({path}: {path: string}) {
   const safe = useSafeAreaInsets();
   const {height} = useWindowDimensions();
   const [options, setOptions] = useState(false);
+  const [page,setPage]=useState<"Profil saya"|"Privasi"|"Pengaturan RT"|null>(null);
   const [personal, setPersonal] = useState(false);
   const [notice, setNotice] = useState('');
   const user = w.session?.user.id;
   useEffect(() => { if (user) void w.refresh(); }, [user, w.refresh]);
-  useEffect(() => { setPersonal(false); setOptions(false); setNotice(''); }, [w.current,user]);
+  useEffect(() => { setPersonal(false); setPage(null); setOptions(false); setNotice(''); }, [w.current,user]);
   const invitation = !!params.undangan || params.wa === '1' || params.gabung === '1';
   const login = () => router.replace({ pathname:'/masuk', params });
   const register = () => router.replace({ pathname:'/daftar', params });
@@ -49,6 +50,7 @@ export default function RondaApp({path}: {path: string}) {
     if(error) setNotice('Gagal keluar. Periksa koneksi dan coba lagi.');
     else { setOptions(false); router.replace('/'); }
   }
+  function openPage(next:typeof page){setPage(next);setOptions(false);}
   const header = <>
     <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12}}>
       <View style={{flex:1}}><Title>{room?.name || 'Ronda Pak'}</Title></View>
@@ -76,8 +78,13 @@ export default function RondaApp({path}: {path: string}) {
                 icon="swap-horizontal-outline" label={'Pindah ke '+item.name} secondary
                 onPress={()=>{setOptions(false);w.choose(item.id);}}/>)}
               {manager && <Button secondary icon={personal?'settings-outline':'location-outline'}
-                label={personal?'Kelola RT':'Presensi saya'} onPress={()=>{setPersonal(!personal);setOptions(false);}}/>}
+                label={personal?'Kelola RT':'Presensi saya'} onPress={()=>{setPersonal(!personal);openPage(null);}}/>}
             </Card>
+            {room && <Card><Body>Akun saya</Body>
+              <Button secondary icon="person-outline" label="Profil saya" onPress={()=>openPage('Profil saya')}/>
+              <Button secondary icon="lock-closed-outline" label="Privasi dan data saya" onPress={()=>openPage('Privasi')}/>
+              {manager && <Button secondary icon="settings-outline" label="Pengaturan RT" onPress={()=>{setPersonal(false);openPage('Pengaturan RT');}}/>}
+            </Card>}
             <Card><Body>Keanggotaan</Body>
               <Button secondary icon="ticket-outline" label="Gunakan kode undangan"
                 onPress={()=>{setOptions(false);router.push({pathname:'/',params:{gabung:'1'}});}}/>
@@ -91,13 +98,18 @@ export default function RondaApp({path}: {path: string}) {
       </View>
     </Modal>
   </>;
+  if (!w.error && room && user && (page==='Profil saya' || page==='Privasi')) {
+    return <Screen>{header}<Button quiet label="Kembali" icon="arrow-back-outline" onPress={()=>openPage(null)}/>
+      <Resident rt={room.id} userId={user} page={page} openProfile={()=>openPage('Profil saya')}/></Screen>;
+  }
   if (!w.error && room && user && manager && !personal) {
     return <Manager key={room.id+user} rt={room.id} userId={user} name={room.name}
+      settingsOpen={page==='Pengaturan RT'} settings={value=>openPage(value?'Pengaturan RT':null)}
       owner={room.role==='owner'} header={header}/>;
   }
   return <Screen>{header}
     {w.error ? <Card><Body>{w.error}</Body><Button label="Coba lagi" onPress={()=>void w.refresh()}/></Card>
-      : room && user ? <Resident key={room.id+user} rt={room.id} userId={user}/>
+      : room && user ? <Resident openProfile={()=>openPage('Profil saya')} key={room.id+user} rt={room.id} userId={user}/>
       : w.loading ? <Body>Memuat ruang RT…</Body> : <Card><Title>Mulai di Ronda Pak</Title>
         <Body>Pengurus dapat mendaftarkan RT. Untuk bergabung sebagai warga, buka undangan dari pengurus Anda.</Body>
         <Button label="Daftarkan RT" onPress={()=>router.push('/daftar')}/>
