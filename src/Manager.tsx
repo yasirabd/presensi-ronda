@@ -36,7 +36,7 @@ export default function Manager({rt, userId, name, owner, header}:Props) {
         const selected = section===label;
         const color = selected ? c.accent : c.textSecondary;
         return <Pressable key={label} accessibilityRole="tab" accessibilityLabel={label}
-          accessibilityState={{selected}} onPress={() => {
+          accessibilityState={{selected}} aria-selected={selected} onPress={() => {
             if (selected) return;
             setStartInvite(false);
             setSection(label);
