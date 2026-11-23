@@ -1,4 +1,4 @@
-import { useState, type PropsWithChildren } from 'react';
+import { useState, type ReactNode, type PropsWithChildren } from 'react';
 import {
   Pressable, ScrollView, StyleSheet, Text, TextInput,
   useColorScheme, View, type TextInputProps, type GestureResponderEvent,
@@ -15,13 +15,13 @@ export function useOwl() {
   return { ...palette[dark ? 'dark' : 'light'], dark };
 }
 
-export function Screen({ children, form }: PropsWithChildren<{form?: boolean}>) {
+export function Screen({ children, form, footer }: PropsWithChildren<{form?: boolean; footer?: ReactNode}>) {
   const c = useOwl();
   const insets = useSafeAreaInsets();
-  return <ScrollView style={{ flex: 1, backgroundColor: c.bg }}
+  return <View style={{flex:1, backgroundColor:c.bg}}><ScrollView style={{ flex: 1, backgroundColor: c.bg }}
     keyboardShouldPersistTaps="handled" contentInsetAdjustmentBehavior="never"
     contentContainerStyle={[styles.screen, { paddingTop: 24 + insets.top, paddingBottom: 52 + insets.bottom,
-      paddingLeft: size.screenPadding + insets.left, paddingRight: size.screenPadding + insets.right }]}><View style={[styles.column, form && { maxWidth: 480 }]}>{children}</View></ScrollView>;
+      paddingLeft: size.screenPadding + insets.left, paddingRight: size.screenPadding + insets.right }]}><View style={[styles.column, form && { maxWidth: 480 }]}>{children}</View></ScrollView>{footer}</View>;
 }
 
 export function Card({ children }: PropsWithChildren) {

@@ -46,12 +46,12 @@ export default function RondaApp({path}: {path: string}) {
     if(error) setNotice('Gagal keluar. Periksa koneksi dan coba lagi.');
     else router.replace('/');
   }
-  return <Screen>
+  const header = <>
     <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12}}>
       <View style={{flex:1}}><Title>{room?.name || 'Ronda Pak'}</Title></View>
       <Pressable accessibilityRole="button" accessibilityLabel="Pilihan akun dan RT" accessibilityState={{expanded:options}}
         onPress={()=>setOptions(!options)} style={{minWidth:48,minHeight:48,alignItems:'center',justifyContent:'center',borderRadius:16,backgroundColor:theme.surface}}>
-        <Ionicons name="menu-outline" size={24} color={theme.text}/>
+        <Ionicons name={options ? "close-outline" : "person-circle-outline"} size={24} color={theme.text}/>
       </Pressable>
     </View>
     {options && <Card>
@@ -62,10 +62,14 @@ export default function RondaApp({path}: {path: string}) {
       <Button secondary icon="log-out-outline" label="Keluar" onPress={logout}/>
     </Card>}
     {!!notice && <Body>{notice}</Body>}
+  </>;
+  if (!w.error && room && user && manager && !personal) {
+    return <Manager key={room.id+user} rt={room.id} userId={user} name={room.name}
+      owner={room.role==='owner'} header={header}/>;
+  }
+  return <Screen>{header}
     {w.error ? <Card><Body>{w.error}</Body><Button label="Coba lagi" onPress={()=>void w.refresh()}/></Card>
-      : room && user ? manager && !personal
-        ? <Manager key={room.id+user} rt={room.id} userId={user} name={room.name} owner={room.role==='owner'}/>
-        : <Resident key={room.id+user} rt={room.id} userId={user}/>
+      : room && user ? <Resident key={room.id+user} rt={room.id} userId={user}/>
       : w.loading ? <Body>Memuat ruang RT…</Body> : <Card><Title>Mulai di Ronda Pak</Title>
         <Body>Pengurus dapat mendaftarkan RT. Untuk bergabung sebagai warga, buka undangan dari pengurus Anda.</Body>
         <Button label="Daftarkan RT" onPress={()=>router.push('/daftar')}/>

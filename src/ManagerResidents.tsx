@@ -8,7 +8,7 @@ import {checked,LoadState,useRead,useWork,type Member} from './manager-common';
 
 type Invite={email:string|null;invited_name:string|null;whatsapp:string|null;token:string;expires_at:string};
 type Pending={token:string;full_name:string;whatsapp:string;home_address:string;has_face:boolean};
-type Props={rt:string;name:string;members:Member[];revision:number;changed:()=>void};
+type Props={rt:string;name:string;members:Member[];revision:number;changed:()=>void; startInvite?:boolean};
 const inviteColumns='email,invited_name,whatsapp,token,expires_at';
 function recipient(invite:Invite){return invite.invited_name||invite.email||'Warga'}
 function phoneNumber(input:string){
@@ -18,7 +18,7 @@ function phoneNumber(input:string){
   return digits;
 }
 
-function Invitations({rt,name,revision,changed}:Omit<Props,'members'>) {
+function Invitations({rt,name,revision,changed,startInvite}:Omit<Props,'members'>) {
   const theme = useOwl();
   const load=useCallback(async()=>{
     const [invites,pending]=await Promise.all([
@@ -29,7 +29,7 @@ function Invitations({rt,name,revision,changed}:Omit<Props,'members'>) {
   },[rt]);
   const state=useRead(load,revision);
   const work=useWork();
-  const [form,setForm]=useState(false);
+  const [form,setForm]=useState(!!startInvite);
   const [activeList,setActiveList]=useState(false);
   const [fullName,setFullName]=useState('');
   const [phone,setPhone]=useState('');
