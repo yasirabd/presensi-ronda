@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { db, configured } from './client';
 import { useWorkspace } from './store';
@@ -15,6 +16,8 @@ export default function RondaApp({path}: {path: string}) {
   const params = Object.fromEntries(Object.entries(raw).map(([k,v]) => [k, Array.isArray(v) ? v[0] : v || '']));
   const w = useWorkspace();
   const theme = useOwl();
+  const safe = useSafeAreaInsets();
+  const {height} = useWindowDimensions();
   const [options, setOptions] = useState(false);
   const [personal, setPersonal] = useState(false);
   const [notice, setNotice] = useState('');
@@ -44,24 +47,49 @@ export default function RondaApp({path}: {path: string}) {
   async function logout() {
     const {error} = await db.auth.signOut();
     if(error) setNotice('Gagal keluar. Periksa koneksi dan coba lagi.');
-    else router.replace('/');
+    else { setOptions(false); router.replace('/'); }
   }
   const header = <>
     <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12}}>
       <View style={{flex:1}}><Title>{room?.name || 'Ronda Pak'}</Title></View>
-      <Pressable accessibilityRole="button" accessibilityLabel="Pilihan akun dan RT" accessibilityState={{expanded:options}}
-        onPress={()=>setOptions(!options)} style={{minWidth:48,minHeight:48,alignItems:'center',justifyContent:'center',borderRadius:16,backgroundColor:theme.surface}}>
-        <Ionicons name={options ? "close-outline" : "person-circle-outline"} size={24} color={theme.text}/>
+      <Pressable accessibilityRole="button" accessibilityLabel="Pilihan akun dan RT" accessibilityState={{expanded:options}} aria-expanded={options}
+        onPress={()=>{setNotice('');setOptions(true);}} style={{minWidth:48,minHeight:48,alignItems:'center',justifyContent:'center',borderRadius:16,backgroundColor:theme.surface}}>
+        <Image accessible={false} source={require('../public/ronda-pak-owl.png')} style={{width:32,height:32}}/>
       </Pressable>
     </View>
-    {options && <Card>
-      {w.rooms.length>1 && <><Body>Pilih RT aktif</Body>{w.rooms.map(item=><Button key={item.id} icon={item.id===w.current?'checkmark-circle-outline':'home-outline'} label={item.name} secondary={item.id!==w.current} onPress={()=>w.choose(item.id)}/>)}</>}
-      {manager && <Button secondary icon={personal?'settings-outline':'location-outline'} label={personal?'Kelola RT':'Presensi saya'} onPress={()=>{setPersonal(!personal);setOptions(false);}}/>}
-      <Button secondary icon="ticket-outline" label="Gunakan kode undangan" onPress={()=>router.push({pathname:'/',params:{gabung:'1'}})}/>
-      <Button secondary icon="add-circle-outline" label="Daftarkan RT lain" onPress={()=>router.push('/daftar')}/>
-      <Button secondary icon="log-out-outline" label="Keluar" onPress={logout}/>
-    </Card>}
-    {!!notice && <Body>{notice}</Body>}
+    <Modal visible={options} transparent animationType="slide" onRequestClose={()=>setOptions(false)}>
+      <View style={{flex:1,justifyContent:'flex-end',backgroundColor:'rgba(9,16,28,.48)'}}>
+        <Pressable accessible={false} importantForAccessibility="no" tabIndex={-1}
+          onPress={()=>setOptions(false)} style={{position:'absolute',top:0,bottom:0,left:0,right:0}}/>
+        <View accessibilityViewIsModal style={{width:'100%',maxWidth:520,alignSelf:'center',maxHeight:height*.86,
+          backgroundColor:theme.bg,borderTopLeftRadius:28,borderTopRightRadius:28,overflow:'hidden'}}>
+          <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:20,paddingTop:14,paddingBottom:8}}>
+            <Title>Akun dan RT</Title>
+            <Pressable accessibilityRole="button" accessibilityLabel="Tutup menu akun" onPress={()=>setOptions(false)}
+              style={{width:48,height:48,justifyContent:'center',alignItems:'center',borderRadius:24,backgroundColor:theme.surface}}>
+              <Ionicons name="close-outline" size={24} color={theme.text}/>
+            </Pressable>
+          </View>
+          <ScrollView style={{flexShrink:1}} contentContainerStyle={{gap:12,paddingHorizontal:16,paddingBottom:Math.max(20,safe.bottom+12)}}>
+            <Card><Body>RT aktif</Body><Title>{room?.name || 'Belum memilih RT'}</Title>
+              {w.rooms.filter(item=>item.id!==w.current).map(item=><Button key={item.id}
+                icon="swap-horizontal-outline" label={'Pindah ke '+item.name} secondary
+                onPress={()=>{setOptions(false);w.choose(item.id);}}/>)}
+              {manager && <Button secondary icon={personal?'settings-outline':'location-outline'}
+                label={personal?'Kelola RT':'Presensi saya'} onPress={()=>{setPersonal(!personal);setOptions(false);}}/>}
+            </Card>
+            <Card><Body>Keanggotaan</Body>
+              <Button secondary icon="ticket-outline" label="Gunakan kode undangan"
+                onPress={()=>{setOptions(false);router.push({pathname:'/',params:{gabung:'1'}});}}/>
+              <Button secondary icon="add-circle-outline" label="Daftarkan RT lain"
+                onPress={()=>{setOptions(false);router.push('/daftar');}}/>
+            </Card>
+            {!!notice && <Body>{notice}</Body>}
+            <Button secondary icon="log-out-outline" label="Keluar" onPress={logout}/>
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
   </>;
   if (!w.error && room && user && manager && !personal) {
     return <Manager key={room.id+user} rt={room.id} userId={user} name={room.name}
