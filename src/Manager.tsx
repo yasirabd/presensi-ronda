@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useRef, useState, type ReactNode } from 'react';
-import { Image, ImageBackground, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 import { db } from './client';
 import { checked, useRead, LoadState, type Member } from './manager-common';
 import { Residents } from './ManagerResidents';
 import { ManagerReport } from './ManagerReport';
 import { ManagerSettings } from './ManagerSettings';
-import { Button, useOwl } from './ui';
+import { Body, Button, Card, useOwl } from './ui';
 import { type } from './theme/typography';
 
 const tabs = [
@@ -75,7 +76,9 @@ export default function Manager({rt, userId, name, owner, header}:Props) {
       <View style={{width:'100%',maxWidth:1060,alignSelf:'center',gap:desktop?20:14}}>
         {header}
     {section==='Beranda' ? <Overview rt={rt} count={members.data?.filter(member=>member.role==='resident').length}
-      invite={() => navigate('Warga',true)} desktop={desktop}/> :
+      invite={() => navigate('Warga',true)} report={() => navigate('Presensi')}
+      settings={() => navigate('Pengaturan')} desktop={desktop}
+      firstName={members.data?.find(member=>member.user_id===userId)?.resident_name?.trim().split(/\s+/)[0]}/> :
       section==='Presensi' ? <ManagerReport rt={rt}/> :
       !members.data ? <LoadState {...members}/> :
       section==='Warga' ? <Residents rt={rt} name={name} members={members.data} revision={revision}
@@ -88,36 +91,93 @@ export default function Manager({rt, userId, name, owner, header}:Props) {
   </View>;
 }
 
-function Overview({rt,count,invite,desktop}:{rt:string;count?:number;invite:()=>void;desktop:boolean}) {
+const localDate = new Intl.DateTimeFormat('id-ID', {
+  timeZone:'Asia/Jakarta', weekday:'long', day:'numeric', month:'long', year:'numeric',
+});
+const dateKey = new Intl.DateTimeFormat('sv-SE', {
+  timeZone:'Asia/Jakarta', year:'numeric', month:'2-digit', day:'2-digit',
+});
+const localHour = new Intl.DateTimeFormat('en-GB', {
+  timeZone:'Asia/Jakarta', hour:'2-digit', hourCycle:'h23',
+});
+
+function Overview({rt,count,invite,report,settings,desktop,firstName}:{
+  rt:string; count?:number; invite:()=>void; report:()=>void; settings:()=>void;
+  desktop:boolean; firstName?:string;
+}) {
   const c = useOwl();
+  const [now,setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(timer);
+  },[]);
+  const day = dateKey.format(now);
+  const hour = Number(localHour.format(now));
+  const greeting = hour < 4 || hour >= 18 ? 'Selamat malam'
+    : hour < 11 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : 'Selamat sore';
   const load = useCallback(async () => {
-    const day = new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
     const start = Date.parse(day+'T00:00:00+07:00');
     const rows = checked(await db.rpc('attendance_report',{target:rt,
       period_start:new Date(start).toISOString(),period_end:new Date(start+86_400_000).toISOString()})) as {status:string}[];
     return rows.filter(row=>row.status.startsWith('Hadir')).length;
-  },[rt]);
+  },[rt,day]);
   const attendance = useRead(load,0);
+
   return <>
-    <ImageBackground source={require('../assets/village-night.webp')} imageStyle={{borderRadius:20}}
-      style={{height:desktop?280:158,justifyContent:'flex-end'}}>
-      <View style={{flexDirection:'row',alignItems:'center',gap:12,padding:16,
-        backgroundColor:'rgba(10,20,35,.88)',borderBottomLeftRadius:20,borderBottomRightRadius:20}}>
-        <Image accessible={false} source={require('../public/ronda-pak-owl.png')} style={{width:44,height:44}}/>
-        <Text accessibilityRole="header" style={[type.title,{color:'white',flex:1}]}>Ringkasan ronda</Text>
+    <ImageBackground source={require('../assets/village-night.webp')} resizeMode="cover"
+      style={{minHeight:desktop?320:222,justifyContent:'flex-end',borderRadius:22,overflow:'hidden',backgroundColor:'#121e36'}}>
+      <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+        <Defs><LinearGradient id="manager-hero-shade" x1="0%" y1="0%" x2="0%" y2="100%">
+          <Stop offset="15%" stopColor="#0b1428" stopOpacity=".05"/>
+          <Stop offset="62%" stopColor="#0b1428" stopOpacity=".62"/>
+          <Stop offset="100%" stopColor="#0b1428" stopOpacity=".98"/>
+        </LinearGradient></Defs>
+        <Rect width="100%" height="100%" fill="url(#manager-hero-shade)"/>
+      </Svg>
+      <View style={{gap:7,padding:desktop?28:18}}>
+        <Text style={[type.label,{color:'#fff1c9'}]}>{localDate.format(now)}</Text>
+        <Text accessibilityRole="header" style={[type.title,{
+          color:'white',fontSize:desktop?38:27,lineHeight:desktop?44:33,
+        }]}>{greeting}{firstName ? ', '+firstName : ''}.</Text>
       </View>
     </ImageBackground>
+
     <View style={{flexDirection:'row',gap:10}}>
-      {[{label:'Warga terdaftar',value:count},{label:'Presensi hari ini',value:attendance.data}].map(metric =>
-        <View key={metric.label} style={{flex:1,minWidth:0,gap:6,padding:14,borderRadius:16,borderWidth:1,
+      {([
+        {label:'Warga terdaftar',value:count,icon:'people-outline'},
+        {label:'Presensi hari ini',value:attendance.data,icon:'checkmark-circle-outline'},
+      ] as const).map(metric =>
+        <View key={metric.label} style={{flex:1,minWidth:0,gap:8,padding:14,borderRadius:16,borderWidth:1,
           borderColor:c.border,backgroundColor:c.surface}}>
+          <View style={{width:32,height:32,borderRadius:10,backgroundColor:c.accentSoft,
+            alignItems:'center',justifyContent:'center'}}>
+            <Ionicons accessible={false} name={metric.icon} size={18} color={c.accent}/>
+          </View>
+          <Text style={[type.title,{color:c.text,fontSize:28,lineHeight:34,fontVariant:['tabular-nums']}]}>{metric.value ?? '—'}</Text>
           <Text style={[type.label,{color:c.textSecondary}]}>{metric.label}</Text>
-          <Text style={[type.title,{color:c.text,fontVariant:['tabular-nums']}]}>{metric.value ?? '—'}</Text>
         </View>)}
     </View>
-    {attendance.error ? <LoadState {...attendance}/> : null}
-    <View style={{alignSelf:desktop?'flex-start':'stretch',minWidth:desktop?220:undefined}}>
-      <Button label="Undang warga" icon="person-add-outline" onPress={invite}/>
+
+    <Card>
+      <Text accessibilityRole="header" style={[type.title,{color:c.text}]}>Aktivitas hari ini</Text>
+      {attendance.error ? <LoadState {...attendance}/> : <Body>{
+        attendance.data === undefined ? 'Memuat presensi…' : attendance.data === 0
+          ? 'Belum ada kehadiran yang tercatat hari ini.'
+          : `${attendance.data} kehadiran tercatat hari ini.`
+      }</Body>}
+      <Button quiet label="Buka rekap presensi" icon="arrow-forward-outline" onPress={report}/>
+    </Card>
+
+    <View style={{gap:10}}>
+      <Text accessibilityRole="header" style={[type.title,{color:c.text}]}>Kelola ronda</Text>
+      <View style={{flexDirection:desktop?'row':'column',gap:10}}>
+        <View style={desktop?{flex:1}:undefined}>
+          <Button label="Undang warga" icon="person-add-outline" onPress={invite}/>
+        </View>
+        <View style={desktop?{flex:1}:undefined}>
+          <Button secondary label="Pengaturan pos ronda" icon="location-outline" onPress={settings}/>
+        </View>
+      </View>
     </View>
   </>;
 }
