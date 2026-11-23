@@ -75,9 +75,9 @@ export default function Manager({rt, userId, name, owner, header}:Props) {
       }}>
       <View style={{width:'100%',maxWidth:1060,alignSelf:'center',gap:desktop?20:14}}>
         {header}
-    {section==='Beranda' ? <Overview rt={rt} count={members.data?.filter(member=>member.role==='resident').length}
+    {section==='Beranda' ? <Overview rt={rt} name={name} count={members.data?.filter(member=>member.role==='resident').length}
       invite={() => navigate('Warga',true)} report={() => navigate('Presensi')}
-      settings={() => navigate('Pengaturan')} desktop={desktop}
+      residents={() => navigate('Warga')} settings={() => navigate('Pengaturan')} desktop={desktop}
       firstName={members.data?.find(member=>member.user_id===userId)?.resident_name?.trim().split(/\s+/)[0]}/> :
       section==='Presensi' ? <ManagerReport rt={rt}/> :
       !members.data ? <LoadState {...members}/> :
@@ -101,8 +101,8 @@ const localHour = new Intl.DateTimeFormat('en-GB', {
   timeZone:'Asia/Jakarta', hour:'2-digit', hourCycle:'h23',
 });
 
-function Overview({rt,count,invite,report,settings,desktop,firstName}:{
-  rt:string; count?:number; invite:()=>void; report:()=>void; settings:()=>void;
+function Overview({rt,name,count,invite,report,residents,settings,desktop,firstName}:{
+  rt:string; name:string; count?:number; invite:()=>void; report:()=>void; residents:()=>void; settings:()=>void;
   desktop:boolean; firstName?:string;
 }) {
   const c = useOwl();
@@ -122,10 +122,18 @@ function Overview({rt,count,invite,report,settings,desktop,firstName}:{
     return rows.filter(row=>row.status.startsWith('Hadir')).length;
   },[rt,day]);
   const attendance = useRead(load,0);
+  const loadPost = useCallback(async () => Boolean(checked(await db.from('post_locations')
+    .select('latitude').eq('rt_id',rt).eq('post',name).maybeSingle())),[rt,name]);
+  const loadPending = useCallback(async () =>
+    (checked(await db.rpc('pending_joins',{target:rt})) as unknown[]).length,[rt]);
+  const post = useRead(loadPost,0);
+  const pending = useRead(loadPending,0);
+  const needsLocation = post.data === false;
 
   return <>
-    <ImageBackground source={require('../assets/village-night.webp')} resizeMode="cover"
-      style={{minHeight:desktop?320:222,justifyContent:'flex-end',borderRadius:22,overflow:'hidden',backgroundColor:'#121e36'}}>
+    <ImageBackground source={desktop?require('../assets/manager-village-wide.webp'):require('../assets/manager-village-mobile.webp')}
+      imageStyle={{width:'100%',height:'100%'}} resizeMode="cover"
+      style={{minHeight:desktop?265:190,justifyContent:'flex-end',borderRadius:22,overflow:'hidden',backgroundColor:'#121e36'}}>
       <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
         <Defs><LinearGradient id="manager-hero-shade" x1="0%" y1="0%" x2="0%" y2="100%">
           <Stop offset="15%" stopColor="#0b1428" stopOpacity=".05"/>
@@ -142,41 +150,32 @@ function Overview({rt,count,invite,report,settings,desktop,firstName}:{
       </View>
     </ImageBackground>
 
-    <View style={{flexDirection:'row',gap:10}}>
-      {([
-        {label:'Warga terdaftar',value:count,icon:'people-outline'},
-        {label:'Presensi hari ini',value:attendance.data,icon:'checkmark-circle-outline'},
-      ] as const).map(metric =>
-        <View key={metric.label} style={{flex:1,minWidth:0,gap:8,padding:14,borderRadius:16,borderWidth:1,
-          borderColor:c.border,backgroundColor:c.surface}}>
-          <View style={{width:32,height:32,borderRadius:10,backgroundColor:c.accentSoft,
-            alignItems:'center',justifyContent:'center'}}>
-            <Ionicons accessible={false} name={metric.icon} size={18} color={c.accent}/>
-          </View>
-          <Text style={[type.title,{color:c.text,fontSize:28,lineHeight:34,fontVariant:['tabular-nums']}]}>{metric.value ?? '—'}</Text>
-          <Text style={[type.label,{color:c.textSecondary}]}>{metric.label}</Text>
-        </View>)}
-    </View>
+    <View style={{flexDirection:desktop?'row':'column',gap:14}}>
+      <View style={{flex:desktop?1.3:undefined,minWidth:0,gap:12}}>
+        <Card>
+          <Text accessibilityRole="header" style={[type.title,{color:c.text}]}>Kehadiran hari ini</Text>
+          {attendance.data === null ? <LoadState {...attendance}/> : <View style={{flexDirection:'row',alignItems:'baseline',gap:8}}>
+            <Text style={[type.title,{color:c.text,fontSize:34,lineHeight:40}]}>{attendance.data}</Text>
+            <Body>kehadiran tercatat</Body>
+          </View>}
+          {count !== undefined && <Body>{count} warga terdaftar di RT ini</Body>}
+          <Button quiet label="Buka rekap presensi" icon="arrow-forward-outline" onPress={report}/>
+        </Card>
+        {post.data !== null && <Button label={needsLocation?'Atur lokasi pos':'Undang warga'}
+          icon={needsLocation?'location-outline':'person-add-outline'} onPress={needsLocation?settings:invite}/>}
+      </View>
 
-    <Card>
-      <Text accessibilityRole="header" style={[type.title,{color:c.text}]}>Aktivitas hari ini</Text>
-      {attendance.error ? <LoadState {...attendance}/> : <Body>{
-        attendance.data === undefined ? 'Memuat presensi…' : attendance.data === 0
-          ? 'Belum ada kehadiran yang tercatat hari ini.'
-          : `${attendance.data} kehadiran tercatat hari ini.`
-      }</Body>}
-      <Button quiet label="Buka rekap presensi" icon="arrow-forward-outline" onPress={report}/>
-    </Card>
-
-    <View style={{gap:10}}>
-      <Text accessibilityRole="header" style={[type.title,{color:c.text}]}>Kelola ronda</Text>
-      <View style={{flexDirection:desktop?'row':'column',gap:10}}>
-        <View style={desktop?{flex:1}:undefined}>
-          <Button label="Undang warga" icon="person-add-outline" onPress={invite}/>
-        </View>
-        <View style={desktop?{flex:1}:undefined}>
-          <Button secondary label="Pengaturan pos ronda" icon="location-outline" onPress={settings}/>
-        </View>
+      <View style={{flex:desktop?1:undefined,minWidth:0}}>
+        <Card>
+          <Text accessibilityRole="header" style={[type.title,{color:c.text}]}>Perlu ditangani</Text>
+          {post.error && <LoadState {...post}/>}
+          {pending.error && <LoadState {...pending}/>}
+          {needsLocation && <Body>Simpan titik pos agar warga bisa absen dengan verifikasi lokasi.</Body>}
+          {!!pending.data && <Button secondary icon="people-outline"
+            label={`${pending.data} pendaftaran menunggu`} onPress={residents}/>}
+          {post.data && pending.data===0 && <Body>Lokasi pos sudah siap. Semua pendaftaran warga sudah ditinjau.</Body>}
+          {!post.error && !pending.error && (post.data===null || pending.data===null) && <Body>Memeriksa status RT…</Body>}
+        </Card>
       </View>
     </View>
   </>;
