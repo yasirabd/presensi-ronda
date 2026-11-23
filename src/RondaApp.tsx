@@ -8,7 +8,7 @@ import { useWorkspace } from './store';
 import { Screen, Card, Body, Button, Title, useOwl } from './ui';
 import Landing from './Landing';
 import Access from './Access';
-import Manager from './Manager';
+import Manager, {type ManagerSection} from './Manager';
 import Resident from './Resident';
 
 export default function RondaApp({path}: {path: string}) {
@@ -20,11 +20,13 @@ export default function RondaApp({path}: {path: string}) {
   const {height} = useWindowDimensions();
   const [options, setOptions] = useState(false);
   const [page,setPage]=useState<"Profil saya"|"Privasi"|"Pengaturan RT"|null>(null);
+  const [managerTab,setManagerTab]=useState<ManagerSection>('Beranda');
+  const [residentTab,setResidentTab]=useState('Presensi');
   const [personal, setPersonal] = useState(false);
   const [notice, setNotice] = useState('');
   const user = w.session?.user.id;
   useEffect(() => { if (user) void w.refresh(); }, [user, w.refresh]);
-  useEffect(() => { setPersonal(false); setPage(null); setOptions(false); setNotice(''); }, [w.current,user]);
+  useEffect(() => { setPersonal(false); setManagerTab('Beranda'); setResidentTab('Presensi'); setPage(null); setOptions(false); setNotice(''); }, [w.current,user]);
   const invitation = !!params.undangan || params.wa === '1' || params.gabung === '1';
   const login = () => router.replace({ pathname:'/masuk', params });
   const register = () => router.replace({ pathname:'/daftar', params });
@@ -84,7 +86,7 @@ export default function RondaApp({path}: {path: string}) {
                 icon="swap-horizontal-outline" label={'Pindah ke '+item.name} secondary
                 onPress={()=>{setOptions(false);w.choose(item.id);}}/>)}
               {manager && <Button secondary icon={personal?'settings-outline':'location-outline'}
-                label={personal?'Kelola RT':'Presensi saya'} onPress={()=>{setPersonal(!personal);openPage(null);}}/>}
+                label={personal?'Kelola RT':'Presensi saya'} onPress={()=>{setResidentTab('Presensi');setPersonal(!personal);openPage(null);}}/>}
             </Card>
             {room && <Card><Body>Akun saya</Body>
               <Button secondary icon="person-outline" label="Profil saya" onPress={()=>openPage('Profil saya')}/>
@@ -99,8 +101,8 @@ export default function RondaApp({path}: {path: string}) {
     </Modal>
   </>;
   if (!w.error && room && user && (page==='Profil saya' || page==='Privasi')) {
-    return <Screen>{header}<Button quiet label="Kembali" icon="arrow-back-outline" onPress={()=>openPage(page==='Privasi'?'Profil saya':null)}/>
-      <Resident rt={room.id} userId={user} page={page} openProfile={()=>openPage('Profil saya')}/>
+    return <Screen>{header}<Button quiet label={'Kembali ke '+(page==='Privasi'?'Profil saya':manager&&!personal?managerTab:residentTab)} icon="arrow-back-outline" onPress={()=>openPage(page==='Privasi'?'Profil saya':null)}/>
+      <Resident section={residentTab} setSection={setResidentTab} rt={room.id} userId={user} page={page} openProfile={()=>openPage('Profil saya')}/>
       {page==='Profil saya' && <>
         <Button secondary icon="lock-closed-outline" label="Ajukan permintaan data pribadi" onPress={()=>openPage('Privasi')}/>
         {membership}
@@ -108,13 +110,13 @@ export default function RondaApp({path}: {path: string}) {
     </Screen>;
   }
   if (!w.error && room && user && manager && !personal) {
-    return <Manager key={room.id+user} rt={room.id} userId={user} name={room.name}
+    return <Manager section={managerTab} setSection={setManagerTab} key={room.id+user} rt={room.id} userId={user} name={room.name}
       settingsOpen={page==='Pengaturan RT'} settings={value=>openPage(value?'Pengaturan RT':null)}
       owner={room.role==='owner'} header={header}/>;
   }
   return <Screen>{header}
     {w.error ? <Card><Body>{w.error}</Body><Button label="Coba lagi" onPress={()=>void w.refresh()}/></Card>
-      : room && user ? <Resident openProfile={()=>openPage('Profil saya')} key={room.id+user} rt={room.id} userId={user}/>
+      : room && user ? <Resident section={residentTab} setSection={setResidentTab} openProfile={()=>openPage('Profil saya')} key={room.id+user} rt={room.id} userId={user}/>
       : w.loading ? <Body>Memuat ruang RT…</Body> : <Card><Title>Mulai di Ronda Pak</Title>
         <Body>Pengurus dapat mendaftarkan RT. Untuk bergabung sebagai warga, buka undangan dari pengurus Anda.</Body>
         <Button label="Daftarkan RT" onPress={()=>router.push('/daftar')}/>

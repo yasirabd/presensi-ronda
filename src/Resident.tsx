@@ -168,8 +168,8 @@ function Privacy({ rt, userId, contact, zone }: Props & { contact: string; zone:
   </Card>;
 }
 
-type SpaceProps = Props & {page?:'Profil saya'|'Privasi';openProfile:()=>void};
-function ResidentSpace({ rt, userId, page, openProfile }: SpaceProps) {
+type SpaceProps = Props & {section:string;setSection:(section:string)=>void;page?:'Profil saya'|'Privasi';openProfile:()=>void};
+function ResidentSpace({ rt, userId, page, openProfile, section, setSection }: SpaceProps) {
   const read = useRead(useCallback(async () => {
     const [profile, face, community] = await Promise.all([
       db.from('memberships').select('resident_name, home_address').eq('rt_id', rt).eq('user_id', userId).single(),
@@ -179,7 +179,6 @@ function ResidentSpace({ rt, userId, page, openProfile }: SpaceProps) {
     return { profile: checked(profile) as Profile, face: checked(face) as string,
       community: checked(community) as { zone: string; privacy_contact: string | null } };
   }, [rt, userId]), 0);
-  const [section, setSection] = useState('Presensi');
   const [updatedProfile, setProfile] = useState<Profile | null>(null);
   const [updatedFace, setFace] = useState<string | null>(null);
   if (!read.data) return <Card><LoadState {...read} /></Card>;

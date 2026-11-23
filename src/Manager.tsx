@@ -16,23 +16,22 @@ const tabs = [
   {label:'Warga', icon:'people-outline'},
   {label:'Rekap', icon:'calendar-outline'},
 ] as const;
-type Section = typeof tabs[number]['label'];
-type Props = {rt:string; userId:string; name:string; owner:boolean; settingsOpen:boolean;settings:(open:boolean)=>void;header:ReactNode};
+export type ManagerSection = typeof tabs[number]['label'];
+type Props = {section:ManagerSection;setSection:(section:ManagerSection)=>void;rt:string; userId:string; name:string; owner:boolean; settingsOpen:boolean;settings:(open:boolean)=>void;header:ReactNode};
 
-export default function Manager({rt, userId, name, owner, header,settingsOpen,settings}:Props) {
+export default function Manager({section,setSection,rt, userId, name, owner, header,settingsOpen,settings}:Props) {
   const c = useOwl();
   const safe = useSafeAreaInsets();
   const {width, fontScale} = useWindowDimensions();
   const desktop = width / Math.max(1,fontScale) >= 960;
   const scroll = useRef<ScrollView>(null);
-  const [section, setSection] = useState<Section>('Beranda');
   const [startInvite, setStartInvite] = useState(false);
   const [revision, setRevision] = useState(0);
   const changed = () => setRevision(value => value + 1);
   const load = useCallback(async () => checked(await db.from('memberships')
     .select('user_id,email,role,resident_name,home_address,whatsapp').eq('rt_id',rt)) as Member[], [rt]);
   const members = useRead(load, revision, true);
-  function navigate(next:Section, invite = false) {
+  function navigate(next:ManagerSection, invite = false) {
     settings(false);
     if (next === section && !settingsOpen) return;
     setStartInvite(invite);
@@ -75,6 +74,7 @@ export default function Manager({rt, userId, name, owner, header,settingsOpen,se
       }}>
       <View style={{width:'100%',maxWidth:1060,alignSelf:'center',gap:desktop?20:14}}>
         {header}
+        {settingsOpen && <Button quiet icon="arrow-back-outline" label={'Kembali ke '+section} onPress={()=>settings(false)}/>}
     {!settingsOpen && section==='Beranda' ? <Overview rt={rt} name={name} count={members.data?.filter(member=>member.role==='resident').length}
       invite={() => navigate('Warga',true)} report={() => navigate('Rekap')}
       residents={() => navigate('Warga')} settings={() => settings(true)} desktop={desktop}

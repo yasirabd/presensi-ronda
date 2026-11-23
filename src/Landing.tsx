@@ -14,12 +14,12 @@ const guides = [
   { title: 'Cara presensi sebagai warga', steps: [
     'Buka tautan undangan WhatsApp dari pengurus. Isi data diri dan rekam wajah. Jika sudah punya akun, masuk dulu.',
     'Konfirmasi email, lalu tunggu persetujuan pengurus. Jika tadi melewati kamera, daftarkan wajah sebelum presensi pertama.',
-    'Di pos ronda, pilih Presensi sekarang. Izinkan akses lokasi dan kamera depan, lalu pilih Verifikasi kehadiran. Status Hadir berarti presensi sudah tercatat.',
+    'Di pos ronda, pilih Presensi sekarang. Izinkan akses lokasi dan kamera depan, lalu pilih Ambil foto wajah. Status Hadir berarti presensi sudah tercatat.',
   ] },
   { title: 'Cara menyiapkan RT', steps: [
     'Pilih Daftarkan RT, buat akun, dan konfirmasi email. Isi nomor RT, RW, serta wilayah.',
-    'Di menu Undang warga, isi nama dan nomor WhatsApp penerima. Kirim tautan lewat chat pribadi dan periksa pengajuan yang masuk.',
-    'Saat berada di pos ronda, buka Pengaturan RT dan simpan lokasi pos. Periksa kehadiran warga di Rekap presensi.',
+    'Buka Warga dan pilih Undang warga, lalu isi nama dan nomor WhatsApp penerima. Kirim tautan lewat chat pribadi dan periksa pengajuan yang masuk.',
+    'Saat berada di pos ronda, ketuk ikon burung hantu, buka Pengaturan RT, lalu simpan lokasi pos. Periksa kehadiran warga di menu Rekap.',
   ] },
 ];
 
