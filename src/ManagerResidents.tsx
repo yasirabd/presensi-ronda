@@ -1,7 +1,8 @@
-import { fonts } from './theme/typography';
+import { fonts, type } from './theme/typography';
 import { useOwl } from './ui';
 import {useCallback,useState} from 'react';
-import {Linking,Platform,Share,Text,View} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {Linking,Platform,Pressable,Share,Text,View,useWindowDimensions} from 'react-native';
 import {db,publicUrl} from './client';
 import {Body,Button,Card,Field,Title} from './ui';
 import {checked,LoadState,useRead,useWork,type Member} from './manager-common';
@@ -124,6 +125,8 @@ function ResidentDetail({rt,member,status,changed,close}:{rt:string;member:Membe
 export function Residents(props:Props) {
   const theme = useOwl();
   const {rt,members,revision,changed}=props;
+  const {width,fontScale}=useWindowDimensions();
+  const wide=width/Math.max(1,fontScale)>=960;
   const [query,setQuery]=useState('');
   const [editing,setEditing]=useState('');
   const load=useCallback(async()=>{
@@ -135,19 +138,38 @@ export function Residents(props:Props) {
   const rows=members.filter(m=>[m.resident_name,m.email,m.home_address].some(s=>s?.toLocaleLowerCase('id').includes(search)))
     .sort((a,b)=>(a.resident_name||a.email).localeCompare(b.resident_name||b.email,'id'));
   return <><Invitations {...props}/><Card><Title>Daftar warga</Title>
-    <Field label="Cari nama, alamat, atau email" value={query} onChangeText={setQuery}/>
+    <Field label="Cari nama, alamat, atau email" value={query} onChangeText={value=>{setQuery(value);setEditing('');}}/>
     {statuses.error&&<LoadState {...statuses}/>}
     {!rows.length&&<Body>{search?'Warga tidak ditemukan.':'Belum ada warga.'}</Body>}
+    {!rows.length && !!search && <Button quiet label="Hapus pencarian" onPress={()=>setQuery('')}/>}
+    {wide && rows.length>0 && <View style={{flexDirection:'row',gap:12,paddingHorizontal:4}}>
+      {['Nama warga','Alamat rumah','Status wajah'].map((title,index)=><Text key={title}
+        style={[type.label,{flex:index===2?1:2,color:theme.textSecondary}]}>{title}</Text>)}
+      <View style={{width:20}}/>
+    </View>}
     {rows.map(m=>{
       const status=statuses.data?.[m.user_id];
       const label=status==='ready'?'Terdaftar':!m.resident_name||!m.home_address?'Data belum lengkap':
         status==='approved'?'Boleh daftar':status==='pending'?'Belum disetujui':'—';
       return <View key={m.user_id} style={{gap:6,paddingVertical:8,borderTopWidth:1,borderTopColor:theme.border}}>
-        <Title>{m.resident_name||'Data belum lengkap'}</Title>
-        <Body>{m.role==='resident'?'Warga':'Pengurus RT'} · {m.email}</Body><Body>{m.home_address||'Alamat belum diisi'}</Body>
-        <Body>Status wajah · {label}</Body>
-        {editing===m.user_id?<ResidentDetail rt={rt} member={m} status={status} changed={changed} close={()=>setEditing('')}/>:
-          <Button secondary label="Detail" onPress={()=>setEditing(m.user_id)}/>}
+        <Pressable accessibilityRole="button" accessibilityLabel={'Detail '+(m.resident_name||m.email)}
+          aria-expanded={editing===m.user_id} accessibilityState={{expanded:editing===m.user_id}}
+          onPress={()=>setEditing(editing===m.user_id?'':m.user_id)}
+          style={({pressed})=>({minHeight:48,flexDirection:'row',alignItems:'center',gap:12,
+            padding:4,backgroundColor:pressed?theme.accentSoft:'transparent'})}>
+          <View style={{flex:2,minWidth:0,gap:4}}>
+            <Text style={[type.bodyStrong,{color:theme.text}]}>{m.resident_name||m.email}</Text>
+            {!wide && <Body>{m.home_address||'Alamat belum diisi'}</Body>}
+          </View>
+          {wide && <><View style={{flex:2}}><Body>{m.home_address||'Alamat belum diisi'}</Body></View>
+            <View style={{flex:1}}><Body>{label}</Body></View></>}
+          <Ionicons accessible={false} name={editing===m.user_id?'chevron-up':'chevron-down'} size={20} color={theme.accent}/>
+        </Pressable>
+        {editing===m.user_id && <>
+          <Body>{m.role==='resident'?'Warga':'Pengurus RT'} · {m.email}</Body>
+          {!wide && <Body>Status wajah · {label}</Body>}
+          <ResidentDetail rt={rt} member={m} status={status} changed={changed} close={()=>setEditing('')}/>
+        </>}
       </View>;
     })}
   </Card></>;

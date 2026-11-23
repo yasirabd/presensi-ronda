@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { type } from './theme/typography';
 import { Ionicons } from '@expo/vector-icons';
 import { db, configured } from './client';
 import { useWorkspace } from './store';
@@ -71,8 +72,9 @@ export default function RondaApp({path}: {path: string}) {
         {manager && personal && !page && <Body>{room?.name}</Body>}
       </View>
       <Pressable accessibilityRole="button" accessibilityLabel="Pilihan akun dan RT" accessibilityState={{expanded:options}} aria-expanded={options}
-        onPress={()=>{setNotice('');setOptions(true);}} style={{minWidth:48,minHeight:48,alignItems:'center',justifyContent:'center',borderRadius:16,backgroundColor:theme.surface}}>
-        <Image accessible={false} source={require('../public/ronda-pak-owl.png')} style={{width:32,height:32}}/>
+        onPress={()=>{setNotice('');setOptions(true);}} style={{minHeight:48,paddingHorizontal:10,flexDirection:'row',gap:6,alignItems:'center',borderRadius:16,backgroundColor:theme.surface}}>
+        <Image accessible={false} source={require('../public/ronda-pak-owl.png')} style={{width:28,height:28}}/>
+        <Text style={[type.label,{color:theme.text}]}>Akun</Text>
       </Pressable>
     </View>
     {manager && !page && <View style={{alignSelf:'flex-start'}}>
@@ -102,7 +104,7 @@ export default function RondaApp({path}: {path: string}) {
             </Card>
             {room && <Card><Body>Akun saya</Body>
               <Button secondary icon="person-outline" label="Profil saya" onPress={()=>openPage('Profil saya')}/>
-              {manager && <Button secondary icon="settings-outline" label="Pengaturan RT" onPress={()=>{setPersonal(false);openPage('Pengaturan RT');}}/>}
+              {manager && <Button secondary icon="settings-outline" label="Pengaturan RT" onPress={()=>openPage('Pengaturan RT')}/>}
             </Card>}
             {!room && membership}
             {!!notice && <Body>{notice}</Body>}
@@ -121,9 +123,9 @@ export default function RondaApp({path}: {path: string}) {
       </>}
     </Screen>;
   }
-  if (!w.error && room && user && manager && !personal) {
-    return <Manager section={managerTab} setSection={setManagerTab} key={room.id+user} rt={room.id} userId={user} name={room.name}
-      settingsOpen={page==='Pengaturan RT'} settings={value=>openPage(value?'Pengaturan RT':null)}
+  if (!w.error && room && user && manager && (!personal || page==='Pengaturan RT')) {
+    return <Manager section={managerTab} setSection={next=>{setPersonal(false);setManagerTab(next);}} key={room.id+user} rt={room.id} userId={user} name={room.name}
+      settingsReturnLabel={personal ? (residentTab==='Presensi'?'Presensi saya':residentTab) : managerTab} settingsOpen={page==='Pengaturan RT'} settings={value=>openPage(value?'Pengaturan RT':null)}
       owner={room.role==='owner'} header={header}/>;
   }
   return <Screen>{header}
